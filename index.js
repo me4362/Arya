@@ -9,7 +9,7 @@ const HuggingFaceAsistan = require('./huggingface-asistan');
 const hfAsistan = new HuggingFaceAsistan();
 
 // Modülleri import et
-const logger = require('./modules/logger');
+const logger = require('./logger');
 const sessionManager = require('./modules/sessionManager');
 const serviceLoader = require('./modules/serviceLoader');
 const messageHandler = require('./modules/messageHandler');

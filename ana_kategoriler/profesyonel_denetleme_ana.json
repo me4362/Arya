@@ -1,0 +1,39 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "denetim için yazdım",
+    "denetleme hizmeti",
+    "profesyonel denetim",
+    "tedarikçi denetimi",
+    "iç denetim"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Profesyonel Denetleme Hizmetlerimiz için size yardımcı olacağım. Hangi denetim hizmeti ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "İç Denetim Hizmeti",
+      "trigger_message": "İç Denetim Hizmeti"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Tedarikçi/Müşteri Mali Denetim",
+      "trigger_message": "Tedarikçi/Müşteri Mali Denetim"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Tedarikçi Kalite Denetim",
+      "trigger_message": "Tedarikçi Kalite Denetim"
+    },
+    {
+      "option_number": 4,
+      "category_name": "Tedarikçi Üretim Denetleme",
+      "trigger_message": "Tedarikçi Üretim Denetleme"
+    },
+    {
+      "option_number": 5,
+      "category_name": "Firma Temsil Hizmeti",
+      "trigger_message": "Firma Temsil Hizmeti"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz denetim hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

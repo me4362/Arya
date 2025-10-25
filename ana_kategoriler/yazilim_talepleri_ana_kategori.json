@@ -1,0 +1,24 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "yazılım için yazdım",
+    "yazılım talebim var",
+    "yazılım geliştirme",
+    "yazılım hizmetleri",
+    "yazılım projesi"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yazılım Talepleri hizmetlerimiz için size yardımcı olacağım. Hangi yazılım hizmeti ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Özel Yazılım Geliştirme",
+      "trigger_message": "Özel Yazılım Geliştirme"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Mobil Uygulama Geliştirme",
+      "trigger_message": "Mobil Uygulama Geliştirme"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz yazılım hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

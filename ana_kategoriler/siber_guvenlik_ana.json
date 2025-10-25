@@ -1,0 +1,54 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "siber güvenlik için yazdım",
+    "siber güvenlik hizmeti",
+    "siber güvenlik talebim var",
+    "güvenlik hizmetleri",
+    "siber güvenlik danışmanlığı"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Siber Güvenlik Hizmetlerimiz için size yardımcı olacağım. Hangi siber güvenlik hizmeti ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Genel Ağ Güvenliği",
+      "trigger_message": "Genel Ağ Güvenliği"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Kullanıcı Güvenliği",
+      "trigger_message": "Kullanıcı Güvenliği"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Veri Güvenliği",
+      "trigger_message": "Veri Güvenliği"
+    },
+    {
+      "option_number": 4,
+      "category_name": "Uygulama Güvenliği",
+      "trigger_message": "Uygulama Güvenliği"
+    },
+    {
+      "option_number": 5,
+      "category_name": "Kimlik ve Erişim Yönetimi",
+      "trigger_message": "Kimlik ve Erişim Yönetimi"
+    },
+    {
+      "option_number": 6,
+      "category_name": "Güvenlik Yönetimi",
+      "trigger_message": "Güvenlik Yönetimi"
+    },
+    {
+      "option_number": 7,
+      "category_name": "Penetrasyon Test Talebi",
+      "trigger_message": "Penetrasyon Test Talebi"
+    },
+    {
+      "option_number": 8,
+      "category_name": "Eğitim Talepleri",
+      "trigger_message": "Eğitim Talepleri"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz siber güvenlik hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

@@ -1,0 +1,64 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "sigorta için yazdım",
+    "sigorta hizmeti",
+    "sigorta talebim var",
+    "sigorta için bilgi almak istiyorum",
+    "sigorta hizmetleri"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Sigorta hizmetlerimiz için size yardımcı olacağım. Hangi sigorta türü ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Trafik Sigortası",
+      "trigger_message": "Trafik Sigortası"
+    },
+    {
+      "option_number": 2,
+      "category_name": "KASKO",
+      "trigger_message": "KASKO"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Koltuk Sigortası", 
+      "trigger_message": "Koltuk Sigortası"
+    },
+    {
+      "option_number": 4,
+      "category_name": "Yeşil Sigorta",
+      "trigger_message": "Yeşil Sigorta"
+    },
+    {
+      "option_number": 5,
+      "category_name": "DASK",
+      "trigger_message": "DASK"
+    },
+    {
+      "option_number": 6,
+      "category_name": "Konut Sigortası",
+      "trigger_message": "Konut Sigortası"
+    },
+    {
+      "option_number": 7,
+      "category_name": "İşyeri Sigortası",
+      "trigger_message": "İşyeri Sigortası"
+    },
+    {
+      "option_number": 8, 
+      "category_name": "Seyahat Sağlık Sigortası",
+      "trigger_message": "Seyahat Sağlık Sigortası"
+    },
+    {
+      "option_number": 9,
+      "category_name": "Tamamlayıcı Sağlık Sigortası",
+      "trigger_message": "Tamamlayıcı Sağlık Sigortası"
+    },
+    {
+      "option_number": 10,
+      "category_name": "Özel Sağlık Sigortası",
+      "trigger_message": "Özel Sağlık Sigortası"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz sigorta türünün numarasını yazın veya direkt olarak sigorta adını belirtin."
+}

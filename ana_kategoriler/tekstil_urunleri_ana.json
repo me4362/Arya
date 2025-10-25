@@ -1,0 +1,29 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "tekstil için yazdım",
+    "giyim ürünleri",
+    "tekstil ürünleri",
+    "giyim siparişi",
+    "ev tekstili"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Tekstil Ürünlerimiz için size yardımcı olacağım. Hangi tekstil kategorisi ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Erkek Giyim",
+      "trigger_message": "Erkek Giyim"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Kadın Giyim",
+      "trigger_message": "Kadın Giyim"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Ev Tekstil Ürünleri",
+      "trigger_message": "Ev Tekstil Ürünleri"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz tekstil kategorisinin numarasını yazın veya direkt olarak kategori adını belirtin."
+}

@@ -1,0 +1,34 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "emlak için yazdım",
+    "gayrimenkul hizmeti",
+    "inşaat taahhüt",
+    "yatırım gayrimenkul",
+    "kira için"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; İnşaat Emlak Hizmetlerimiz için size yardımcı olacağım. Hangi hizmet ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Satılık Gayrimenkul",
+      "trigger_message": "Satılık Gayrimenkul"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Kiralık Gayrimenkul",
+      "trigger_message": "Kiralık Gayrimenkul"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Yurtdışı Gayrimenkul Yatırım",
+      "trigger_message": "Yurtdışı Gayrimenkul Yatırım"
+    },
+    {
+      "option_number": 4,
+      "category_name": "İnşaat Taahhüt Hizmeti",
+      "trigger_message": "İnşaat Taahhüt Hizmeti"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz inşaat emlak hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

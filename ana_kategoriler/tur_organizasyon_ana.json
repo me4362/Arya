@@ -1,0 +1,29 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "tur için yazdım",
+    "gezi organizasyonu",
+    "seyahat talebi",
+    "personel servisi",
+    "tur organizasyon"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Tur Organizasyon Hizmetlerimiz için size yardımcı olacağım. Hangi tur hizmeti ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Yurtiçi Özel Gezi Talebi",
+      "trigger_message": "Yurtiçi Özel Gezi Talebi"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Yurtdışı Özel Gezi Talebi",
+      "trigger_message": "Yurtdışı Özel Gezi Talebi"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Personel Servis Talebi",
+      "trigger_message": "Personel Servis Talebi"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz tur hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

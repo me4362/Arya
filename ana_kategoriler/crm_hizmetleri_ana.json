@@ -1,0 +1,34 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "crm için yazdım",
+    "müşteri ilişkileri",
+    "müşteri yönetimi",
+    "crm hizmeti",
+    "müşteri edinme"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; CRM Hizmetlerimiz için size yardımcı olacağım. Hangi CRM hizmeti ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Müşteri Seçimi",
+      "trigger_message": "Müşteri Seçimi"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Müşteri Edinme",
+      "trigger_message": "Müşteri Edinme"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Müşteri Koruma",
+      "trigger_message": "Müşteri Koruma"
+    },
+    {
+      "option_number": 4,
+      "category_name": "Müşteri Derinleştirme",
+      "trigger_message": "Müşteri Derinleştirme"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz CRM hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

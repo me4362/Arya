@@ -1,0 +1,29 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "güneş enerjisi için yazdım",
+    "GES kurulumu",
+    "güneş paneli",
+    "solar enerji",
+    "güneş enerjisi sistemi"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Güneş Enerjisi Sistemleri Hizmetlerimiz için size yardımcı olacağım. Hangi hizmet ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Güneş Verimlilik Hesabı",
+      "trigger_message": "Güneş Verimlilik Hesabı"
+    },
+    {
+      "option_number": 2,
+      "category_name": "GES Üretim Hesaplama",
+      "trigger_message": "GES Üretim Hesaplama"
+    },
+    {
+      "option_number": 3,
+      "category_name": "GES Kurulum Hesaplama",
+      "trigger_message": "GES Kurulum Hesaplama"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz güneş enerjisi hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

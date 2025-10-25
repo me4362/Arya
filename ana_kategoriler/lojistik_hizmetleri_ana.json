@@ -1,0 +1,29 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "lojistik için yazdım",
+    "lojistik hizmeti",
+    "nakliye talebim var",
+    "yük taşıma",
+    "depo hizmeti"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Lojistik Hizmetlerimiz için size yardımcı olacağım. Hangi lojistik hizmeti ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Yurtiçi Yük Nakli",
+      "trigger_message": "Yurtiçi Yük Nakli"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Yurtdışı Yük Nakli",
+      "trigger_message": "Yurtdışı Yük Nakli"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Depo/Antrepo Hizmeti",
+      "trigger_message": "Depo/Antrepo Hizmeti"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz lojistik hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

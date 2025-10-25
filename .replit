@@ -1,0 +1,39 @@
+modules = ["web", "nodejs-16", "python-3.12"]
+[agent]
+expertMode = true
+
+[nix]
+channel = "stable-25_05"
+packages = ["chromium", "nss", "atk", "at-spi2-atk", "cups", "gtk3", "gdk-pixbuf", "libxkbcommon", "pango", "cairo", "dbus", "alsa-lib"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ARYA WhatsApp Bot"
+
+[[workflows.workflow]]
+name = "ARYA WhatsApp Bot"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node index.js"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "vm"
+run = ["node", "index.js"]

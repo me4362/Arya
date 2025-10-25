@@ -1,0 +1,54 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "kurumsal hizmetler için yazdım",
+    "kurumsal danışmanlık",
+    "şirket danışmanlığı",
+    "kurumsal çözümler",
+    "iş danışmanlığı"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Kurumsal Hizmetlerimiz için size yardımcı olacağım. Hangi kurumsal hizmet ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "İnsan Kaynakları Danışmanlığı",
+      "trigger_message": "İnsan Kaynakları Danışmanlığı"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Stratejik Planlama Danışmanlığı",
+      "trigger_message": "Stratejik Planlama Danışmanlığı"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Finansal Danışmanlık",
+      "trigger_message": "Finansal Danışmanlık"
+    },
+    {
+      "option_number": 4,
+      "category_name": "Operasyonel İyileştirme",
+      "trigger_message": "Operasyonel İyileştirme"
+    },
+    {
+      "option_number": 5,
+      "category_name": "Kurumsal İletişim Danışmanlığı",
+      "trigger_message": "Kurumsal İletişim Danışmanlığı"
+    },
+    {
+      "option_number": 6,
+      "category_name": "Yasal Danışmanlık",
+      "trigger_message": "Yasal Danışmanlık"
+    },
+    {
+      "option_number": 7,
+      "category_name": "Teknoloji Danışmanlığı",
+      "trigger_message": "Teknoloji Danışmanlığı"
+    },
+    {
+      "option_number": 8,
+      "category_name": "Kurumsal Eğitim Hizmetleri",
+      "trigger_message": "Kurumsal Eğitim Hizmetleri"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz kurumsal hizmetin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

@@ -1,0 +1,39 @@
+{
+  "service_type": "ana_kategori_yonlendirme",
+  "customer_trigger_phrases": [
+    "ithalat ihracat için yazdım",
+    "ithalat hizmeti",
+    "ihracat talebim var",
+    "gümrük işlemleri",
+    "uluslararası ticaret"
+  ],
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; İthalat İhracat Hizmetlerimiz için size yardımcı olacağım. Hangi hizmet ile ilgileniyorsunuz?",
+  "category_options": [
+    {
+      "option_number": 1,
+      "category_name": "Yurtdışı Müşteri Araştırma",
+      "trigger_message": "Yurtdışı Müşteri Araştırma"
+    },
+    {
+      "option_number": 2,
+      "category_name": "Yurtiçi Tedarikçi Araştırma",
+      "trigger_message": "Yurtiçi Tedarikçi Araştırma"
+    },
+    {
+      "option_number": 3,
+      "category_name": "Gümrük Operasyon Hizmetleri",
+      "trigger_message": "Gümrük Operasyon Hizmetleri"
+    },
+    {
+      "option_number": 4,
+      "category_name": "Yurtiçi Ürün Araştırma",
+      "trigger_message": "Yurtiçi Ürün Araştırma"
+    },
+    {
+      "option_number": 5,
+      "category_name": "Yurtdışı Pazar Araştırma",
+      "trigger_message": "Yurtdışı Pazar Araştırma"
+    }
+  ],
+  "completion_message": "Lütfen ilgilendiğiniz ithalat ihracat hizmetinin numarasını yazın veya direkt olarak hizmet adını belirtin."
+}

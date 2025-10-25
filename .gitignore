@@ -1,3 +1,24 @@
+<<<<<<< HEAD
+node_modules/ 
+*.backup 
+*.tmp 
+*.log
+
+# Session data (WhatsApp authentication)
+session/
+sessions/
+
+# Environment variables
+.env
+
+# Replit specific
+.replit
+.upm
+.config
+replit.nix
+.cache
+.breakpoints 
+=======
 # Logs
 logs
 *.log
@@ -137,3 +158,4 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+>>>>>>> bedad913e832718a490070aa74484125045e48b7

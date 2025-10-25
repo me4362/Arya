@@ -8,8 +8,8 @@ const path = require('path');
 const HuggingFaceAsistan = require('./huggingface-asistan');
 const hfAsistan = new HuggingFaceAsistan();
 
-// Modülleri import et - SADECE BU SATIR DEĞİŞTİ
-const logger = require('./modules/logger');  // './modules/logger' yerine './logger'
+// Modülleri import et
+const logger = require('./modules/logger');
 const sessionManager = require('./modules/sessionManager');
 const serviceLoader = require('./modules/serviceLoader');
 const messageHandler = require('./modules/messageHandler');
@@ -25,14 +25,12 @@ const client = new Client({
   }),
   puppeteer: {
     headless: true,
-    executablePath: '/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium-browser',
     args: [
       '--no-sandbox', 
       '--disable-setuid-sandbox', 
       '--disable-dev-shm-usage',
       '--disable-gpu',
-      '--disable-software-rasterizer',
-      '--disable-dev-shm-usage'
+      '--disable-software-rasterizer'
     ]
   }
 });

@@ -1,0 +1,39 @@
+{
+  "service_name": "Tedarikçi Kalite Denetim",
+  "service_category": "Profesyonel Denetleme",
+  "customer_trigger_message": "Merhaba tedarikçi kalite denetimi için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Tedarikçi Kalite Denetim hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Denetlenecek tedarikçi sayısı nedir?",
+      "field_name": "tedarikci_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Tedarikçi lokasyonları nelerdir?",
+      "field_name": "tedarikci_lokasyonlari",
+      "field_type": "text"
+    },
+    {
+      "question": "Kalite standart gereksinimleriniz nelerdir? (ISO 9001 vb.)",
+      "field_name": "kalite_standartlari",
+      "field_type": "text"
+    },
+    {
+      "question": "Ürün/hizmet kategorisi nedir?",
+      "field_name": "urun_hizmet_kategorisi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel kalite kriterleriniz var mı?",
+      "field_name": "ozel_kalite_kriterleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Tedarikçi Kalite Denetim teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

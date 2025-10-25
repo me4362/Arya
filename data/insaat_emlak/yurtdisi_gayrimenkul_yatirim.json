@@ -1,0 +1,39 @@
+{
+  "service_name": "Yurtdışı Gayrimenkul Yatırım",
+  "service_category": "İnşaat Emlak Hizmetleri",
+  "customer_trigger_message": "Merhaba yurtdışı gayrimenkul yatırımı için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yurtdışı Gayrimenkul Yatırım hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Hedef ülke/ülkeler nelerdir?",
+      "field_name": "hedef_ulkeler",
+      "field_type": "text"
+    },
+    {
+      "question": "Yatırım bütçeniz nedir?",
+      "field_name": "yatirim_butcesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Gayrimenkul türü tercihiniz nedir? (konut, ticari, arsa vb.)",
+      "field_name": "gayrimenkul_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Yatırım amacınız nedir? (kira geliri, vatandaşlık, sermaye artışı)",
+      "field_name": "yatirim_amaci",
+      "field_type": "text"
+    },
+    {
+      "question": "Vatandaşlık/oturum izni gereksiniminiz var mı?",
+      "field_name": "vatandaslik_gereksinimi",
+      "field_type": "text"
+    },
+    {
+      "question": "Yatırım zaman çizelgesi tercihiniz nedir?",
+      "field_name": "yatirim_zaman_cizelgesi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Yurtdışı Gayrimenkul Yatırım seçeneklerini ileteceğiz. İlginiz için teşekkür ederiz."
+}

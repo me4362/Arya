@@ -1,0 +1,39 @@
+{
+  "service_name": "Mobil Uygulama Geliştirme",
+  "service_category": "Yazılım Talepleri",
+  "customer_trigger_message": "Merhaba mobil uygulama geliştirme için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Mobil Uygulama Geliştirme hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Mobil uygulamanızın amacı nedir?",
+      "field_name": "uygulama_amaci",
+      "field_type": "text"
+    },
+    {
+      "question": "Hedef platform nedir? (iOS, Android, ikisi birden)",
+      "field_name": "platform",
+      "field_type": "text"
+    },
+    {
+      "question": "Uygulamanın temel özellikleri neler olacak?",
+      "field_name": "temel_ozellikler",
+      "field_type": "text"
+    },
+    {
+      "question": "Tahmini kullanıcı sayısı nedir?",
+      "field_name": "kullanici_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Proje için tahmini bütçeniz nedir?",
+      "field_name": "butce",
+      "field_type": "text"
+    },
+    {
+      "question": "Proje için düşündüğünüz zaman çizelgesi nedir?",
+      "field_name": "zaman_cizelgesi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size mobil uygulama geliştirme teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

@@ -1,0 +1,49 @@
+{
+  "service_name": "Konut Sigortası",
+  "service_category": "Sigorta Hizmetleri",
+  "customer_trigger_message": "Merhaba Konut Sigortası için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Konut Sigortası ürünü için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Konut sahibinin adı ve soyadı",
+      "field_name": "isim_soyisim",
+      "field_type": "text"
+    },
+    {
+      "question": "Konut sahibinin TC Kimlik Numarası",
+      "field_name": "tckn",
+      "field_type": "number"
+    },
+    {
+      "question": "Sigorta yapılacak konutun tam adresi",
+      "field_name": "adres",
+      "field_type": "text"
+    },
+    {
+      "question": "Konutun tahmini piyasa değeri (TL)",
+      "field_name": "konut_degeri",
+      "field_type": "number"
+    },
+    {
+      "question": "Konuttaki eşyaların tahmini değeri (TL)",
+      "field_name": "esya_degeri",
+      "field_type": "number"
+    },
+    {
+      "question": "Varsa mevcut DASK poliçe numaranız",
+      "field_name": "dask_numarasi",
+      "field_type": "text"
+    },
+    {
+      "question": "Binanın yapım yılı",
+      "field_name": "yapim_yili",
+      "field_type": "number"
+    },
+    {
+      "question": "Konutun metrekaresi",
+      "field_name": "metrekare",
+      "field_type": "number"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size en uygun Konut Sigortası fiyatlarını bildireceğim. Beklediğiniz için teşekkürler."
+}

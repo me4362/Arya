@@ -1,0 +1,39 @@
+{
+  "service_name": "Güneş Verimlilik Hesabı",
+  "service_category": "Güneş Enerjisi Sistemleri",
+  "customer_trigger_message": "Merhaba güneş verimlilik hesabı için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Güneş Verimlilik Hesabı hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Proje lokasyonu nedir? (şehir)",
+      "field_name": "proje_lokasyonu",
+      "field_type": "text"
+    },
+    {
+      "question": "Kurulum yapılacak alanın çatı tipi nedir? (düz, eğimli, toprak üstü)",
+      "field_name": "cati_tipi",
+      "field_type": "text"
+    },
+    {
+      "question": "Kurulum alanı büyüklüğü nedir? (m²)",
+      "field_name": "kurulum_alani",
+      "field_type": "number"
+    },
+    {
+      "question": "Çatı yönü ve eğim açısı nedir?",
+      "field_name": "cati_yonu_egim",
+      "field_type": "text"
+    },
+    {
+      "question": "Gölgelenme durumu var mı?",
+      "field_name": "golgelendirme",
+      "field_type": "text"
+    },
+    {
+      "question": "Mevcut elektrik tüketim miktarınız nedir? (kWh/ay)",
+      "field_name": "elektrik_tuketimi",
+      "field_type": "number"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Güneş Verimlilik Hesabı raporunuzu ileteceğiz. İlginiz için teşekkür ederiz."
+}

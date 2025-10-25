@@ -1,0 +1,39 @@
+{
+  "service_name": "Firma Temsil Hizmeti",
+  "service_category": "Profesyonel Denetleme",
+  "customer_trigger_message": "Merhaba firma temsil hizmeti için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Firma Temsil Hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Temsil edilecek ülke/bölge nedir?",
+      "field_name": "temsil_edilecek_bolge",
+      "field_type": "text"
+    },
+    {
+      "question": "Temsil hizmeti süresi nedir?",
+      "field_name": "temsil_suresi",
+      "field_type": "text"
+    },
+    {
+      "question": "Temsil kapsamındaki görevler nelerdir?",
+      "field_name": "temsil_gorevleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel yetki gereksinimleriniz var mı?",
+      "field_name": "ozel_yetki_gereksinimleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Raporlama ve iletişim frekansı tercihiniz nedir?",
+      "field_name": "raporlama_frekansi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Firma Temsil Hizmeti teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

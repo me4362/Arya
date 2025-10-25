@@ -1,0 +1,14 @@
+{
+  "service_name": "Özel Sağlık Sigortası",
+  "service_category": "Sigorta Hizmetleri",
+  "customer_trigger_message": "Merhaba Özel Sağlık Sigortası için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Sağlık Sigortası ürünleri profesyonel danışmanlık ve detaylı bilgilendirme formu istemektedir. Sağlık sigortası teklifinizi oluşturmak için sizinle detaylı bir görüşme yapmak isteriz.",
+  "questions": [
+    {
+      "question": "Lütfen iletişim bilgilerinizi paylaşır mısınız? (Telefon numarası)",
+      "field_name": "telefon_numarasi",
+      "field_type": "phone"
+    }
+  ],
+  "completion_message": "İletişim bilgileriniz alınmıştır. En kısa sürede sizi arayarak detaylı bilgilendirme yapacağız. İlginiz için teşekkür ederiz."
+}

@@ -1,0 +1,34 @@
+{
+  "service_name": "Finansal Danışmanlık",
+  "service_category": "Kurumsal Hizmetler",
+  "customer_trigger_message": "Merhaba finansal danışmanlık için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Finansal Danışmanlık hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Yıllık cirosu nedir?",
+      "field_name": "yillik_ciro",
+      "field_type": "text"
+    },
+    {
+      "question": "Finansal danışmanlık ihtiyacınız nedir? (bütçe planlama, nakit akışı, yatırım danışmanlığı vb.)",
+      "field_name": "finansal_ihtiyac",
+      "field_type": "text"
+    },
+    {
+      "question": "Acil finansal hedefleriniz nelerdir?",
+      "field_name": "finansal_hedefler",
+      "field_type": "text"
+    },
+    {
+      "question": "Mevcut finansal raporlama sisteminiz var mı?",
+      "field_name": "finansal_raporlama",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Finansal Danışmanlık teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

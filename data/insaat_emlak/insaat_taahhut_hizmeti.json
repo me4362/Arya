@@ -1,0 +1,44 @@
+{
+  "service_name": "İnşaat Taahhüt Hizmeti",
+  "service_category": "İnşaat Emlak Hizmetleri",
+  "customer_trigger_message": "Merhaba inşaat taahhüt hizmeti için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; İnşaat Taahhüt Hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Projenin lokasyonu nedir?",
+      "field_name": "proje_lokasyonu",
+      "field_type": "text"
+    },
+    {
+      "question": "Proje türü nedir? (konut, ticari, endüstriyel, altyapı)",
+      "field_name": "proje_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Toplam inşaat alanı nedir? (m²)",
+      "field_name": "insaat_alani",
+      "field_type": "number"
+    },
+    {
+      "question": "Proje bütçesi nedir?",
+      "field_name": "proje_butcesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Başlangıç tarihi tercihiniz nedir?",
+      "field_name": "baslangic_tarihi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel teknik gereksinimleriniz var mı?",
+      "field_name": "teknik_gereksinimler",
+      "field_type": "text"
+    },
+    {
+      "question": "Mimari proje hazır mı?",
+      "field_name": "mimari_proje_durumu",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size İnşaat Taahhüt Hizmeti teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

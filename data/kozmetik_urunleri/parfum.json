@@ -1,0 +1,39 @@
+{
+  "service_name": "Parfüm",
+  "service_category": "Kozmetik Ürünleri",
+  "customer_trigger_message": "Merhaba parfüm için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Parfüm ürünleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Parfüm türü tercihiniz nedir? (EDT, EDP, Extrait de Parfum)",
+      "field_name": "parfum_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Tahmini sipariş miktarı nedir? (adet)",
+      "field_name": "siparis_miktari",
+      "field_type": "number"
+    },
+    {
+      "question": "Koku ailesi tercihiniz nedir? (narenciye, odunsu, floral, oriental vb.)",
+      "field_name": "koku_ailesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Şişe hacmi tercihiniz nedir? (ml)",
+      "field_name": "sisle_hacmi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel formül veya koku geliştirme ihtiyacınız var mı?",
+      "field_name": "ozel_formul",
+      "field_type": "text"
+    },
+    {
+      "question": "Paketleme ve etiketleme gereksinimleriniz nelerdir?",
+      "field_name": "paketleme_gereksinimleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Parfüm ürün tekliflerimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

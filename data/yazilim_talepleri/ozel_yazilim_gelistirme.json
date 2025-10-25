@@ -1,0 +1,39 @@
+{
+  "service_name": "Özel Yazılım Geliştirme",
+  "service_category": "Yazılım Talepleri",
+  "customer_trigger_message": "Merhaba özel yazılım geliştirme için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Özel Yazılım Geliştirme hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Geliştirmek istediğiniz yazılımın amacı nedir?",
+      "field_name": "yazilim_amaci",
+      "field_type": "text"
+    },
+    {
+      "question": "Hedef kullanıcı kitleniz kimlerdir?",
+      "field_name": "hedef_kitle",
+      "field_type": "text"
+    },
+    {
+      "question": "Tahmini kullanıcı sayısı nedir?",
+      "field_name": "kullanici_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Tercih ettiğiniz yazılım dili veya teknoloji var mı?",
+      "field_name": "teknoloji_tercihi",
+      "field_type": "text"
+    },
+    {
+      "question": "Proje için tahmini bütçeniz nedir?",
+      "field_name": "butce",
+      "field_type": "text"
+    },
+    {
+      "question": "Proje için düşündüğünüz zaman çizelgesi nedir?",
+      "field_name": "zaman_cizelgesi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size özel yazılım geliştirme teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

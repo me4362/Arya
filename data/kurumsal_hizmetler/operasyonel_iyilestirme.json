@@ -1,0 +1,34 @@
+{
+  "service_name": "Operasyonel İyileştirme",
+  "service_category": "Kurumsal Hizmetler",
+  "customer_trigger_message": "Merhaba operasyonel iyileştirme için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Operasyonel İyileştirme hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Operasyonel alan nedir? (üretim, lojistik, satış, hizmet vb.)",
+      "field_name": "operasyonel_alan",
+      "field_type": "text"
+    },
+    {
+      "question": "İyileştirme ihtiyacınız nedir? (süreç optimizasyonu, verimlilik artırma, maliyet düşürme vb.)",
+      "field_name": "iyilestirme_ihtiyaci",
+      "field_type": "text"
+    },
+    {
+      "question": "Mevcut verimlilik metrikleriniz nelerdir?",
+      "field_name": "verimlilik_metrikleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Öncelikli iyileştirme alanlarınız nelerdir?",
+      "field_name": "oncelikli_alanlar",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Operasyonel İyileştirme teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

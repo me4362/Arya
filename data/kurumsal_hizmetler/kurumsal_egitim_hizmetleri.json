@@ -1,0 +1,34 @@
+{
+  "service_name": "Kurumsal Eğitim Hizmetleri",
+  "service_category": "Kurumsal Hizmetler",
+  "customer_trigger_message": "Merhaba kurumsal eğitim hizmetleri için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Kurumsal Eğitim Hizmetleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Eğitim alacak katılımcı sayısı nedir?",
+      "field_name": "katilimci_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Eğitim konuları nelerdir? (liderlik, satış, müşteri hizmetleri, teknik eğitimler vb.)",
+      "field_name": "egitim_konulari",
+      "field_type": "text"
+    },
+    {
+      "question": "Eğitim formatı tercihiniz nedir? (online, yüz yüze, hibrit)",
+      "field_name": "egitim_formati",
+      "field_type": "text"
+    },
+    {
+      "question": "Eğitim süresi ve zaman tercihiniz nedir?",
+      "field_name": "egitim_suresi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Kurumsal Eğitim Hizmetleri teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

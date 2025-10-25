@@ -1,0 +1,49 @@
+{
+  "service_name": "GES Kurulum Hesaplama",
+  "service_category": "Güneş Enerjisi Sistemleri",
+  "customer_trigger_message": "Merhaba GES kurulum hesaplama için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; GES Kurulum Hesaplama hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Kurulum adresi nedir?",
+      "field_name": "kurulum_adresi",
+      "field_type": "text"
+    },
+    {
+      "question": "Kurulum tipi nedir? (çatı, zemin, cephe)",
+      "field_name": "kurulum_tipi",
+      "field_type": "text"
+    },
+    {
+      "question": "Sistem kapasite hedefiniz nedir? (kW)",
+      "field_name": "sistem_kapasitesi",
+      "field_type": "number"
+    },
+    {
+      "question": "Mevcut elektrik tesisat durumu nedir?",
+      "field_name": "tesisat_durumu",
+      "field_type": "text"
+    },
+    {
+      "question": "Çatı yapı malzemesi nedir? (kiremit, trapez, beton)",
+      "field_name": "cati_malzemesi",
+      "field_type": "text"
+    },
+    {
+      "question": "İzin ve lisans süreçleri için danışmanlık ihtiyacınız var mı?",
+      "field_name": "izin_danismanlik",
+      "field_type": "text"
+    },
+    {
+      "question": "Kurulum için tercih edilen zaman aralığı nedir?",
+      "field_name": "kurulum_zamani",
+      "field_type": "text"
+    },
+    {
+      "question": "Bütçe aralığınız nedir?",
+      "field_name": "butce_araligi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size GES Kurulum Hesaplama teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

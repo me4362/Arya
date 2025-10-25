@@ -1,0 +1,19 @@
+{
+  "whatsapp_entegrasyonu": {
+    "durum": "planlama_asamasinda",
+    "saglayici": "WhatsApp Business API",
+    "maliyet": "~0.15 TL/mesaj"
+  },
+  "google_sheets": {
+    "durum": "aktif",
+    "kullanım": "Müşteri bilgileri ve fiyat takibi"
+  },
+  "rasa_entegrasyonu": {
+    "durum": "planlama_asamasinda",
+    "hedef": "Doğal dil işleme"
+  },
+  "veritabani": {
+    "tip": "JSON tabanlı",
+    "yedekleme": "Günlük"
+  }
+}

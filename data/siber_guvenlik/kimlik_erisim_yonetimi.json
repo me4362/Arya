@@ -1,0 +1,34 @@
+{
+  "service_name": "Kimlik ve Erişim Yönetimi",
+  "service_category": "Siber Güvenlik Hizmetleri",
+  "customer_trigger_message": "Merhaba kimlik ve erişim yönetimi için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Kimlik ve Erişim Yönetimi hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Kurumunuzun adı nedir?",
+      "field_name": "kurum_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Toplam kullanıcı sayınız nedir?",
+      "field_name": "kullanici_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Mevcut kimlik yönetim sisteminiz var mı?",
+      "field_name": "mevcut_sistem",
+      "field_type": "text"
+    },
+    {
+      "question": "Erişim kontrol ihtiyaçlarınız nelerdir?",
+      "field_name": "erisim_kontrol_ihtiyaclari",
+      "field_type": "text"
+    },
+    {
+      "question": "Çoklu faktör kimlik doğrulama ihtiyacınız var mı?",
+      "field_name": "mfa_ihtiyaci",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Kimlik ve Erişim Yönetimi teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

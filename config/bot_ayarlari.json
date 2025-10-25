@@ -1,0 +1,11 @@
+{
+  "bot_adi": "ARYA",
+  "versiyon": "1.0.0",
+  "dil": "tr",
+  "timezone": "Europe/Istanbul",
+  "firma_adi": "PlanB Global Network Ltd Şti",
+  "gelistirici": "EurAsia Trade And Technology Bulgaria EOOD - ÆSIR Ekibi",
+  "ogrenme_modu": true,
+  "max_session_suresi": 30,
+  "default_mesaj": "Merhaba! Ben ARYA, PlanB Global Network Ltd Şti için hizmet veren yapay zeka asistanıyım. Size nasıl yardımcı olabilirim?"
+}

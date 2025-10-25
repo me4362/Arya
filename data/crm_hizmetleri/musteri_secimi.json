@@ -1,0 +1,39 @@
+{
+  "service_name": "Müşteri Seçimi",
+  "service_category": "CRM Hizmetleri",
+  "customer_trigger_message": "Merhaba müşteri seçimi için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Müşteri Seçimi hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Şirketinizin sektörü nedir?",
+      "field_name": "sektor",
+      "field_type": "text"
+    },
+    {
+      "question": "Hedef müşteri segmentiniz nedir? (B2B, B2C, belirli demografi)",
+      "field_name": "hedef_musteri_segmenti",
+      "field_type": "text"
+    },
+    {
+      "question": "Mevcut müşteri veritabanı büyüklüğünüz nedir?",
+      "field_name": "musteri_veritabani_buyuklugu",
+      "field_type": "text"
+    },
+    {
+      "question": "Müşteri seçim kriterleriniz nelerdir?",
+      "field_name": "musteri_secim_kriterleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Hedef müşteri sayısı beklentiniz nedir?",
+      "field_name": "hedef_musteri_sayisi",
+      "field_type": "number"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Müşteri Seçimi hizmet teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

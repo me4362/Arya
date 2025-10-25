@@ -1,0 +1,39 @@
+{
+  "service_name": "Deodorant",
+  "service_category": "Kozmetik Ürünleri",
+  "customer_trigger_message": "Merhaba deodorant için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Deodorant ürünleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Deodorant formu tercihiniz nedir? (sprey, stick, roll-on, krem)",
+      "field_name": "deodorant_formu",
+      "field_type": "text"
+    },
+    {
+      "question": "Tahmini sipariş miktarı nedir? (adet)",
+      "field_name": "siparis_miktari",
+      "field_type": "number"
+    },
+    {
+      "question": "Etki süresi tercihiniz nedir? (24 saat, 48 saat vb.)",
+      "field_name": "etki_suresi",
+      "field_type": "text"
+    },
+    {
+      "question": "Koku tercihleriniz nelerdir?",
+      "field_name": "koku_tercihleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Doğal içerik tercihiniz var mı?",
+      "field_name": "dogal_icerik",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel ambalaj veya markalama ihtiyacınız var mı?",
+      "field_name": "ozel_ambalaj",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Deodorant ürün tekliflerimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

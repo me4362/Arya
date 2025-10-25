@@ -1,0 +1,39 @@
+{
+  "service_name": "Kişisel Bakım",
+  "service_category": "Kozmetik Ürünleri",
+  "customer_trigger_message": "Merhaba kişisel bakım ürünleri için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Kişisel Bakım ürünleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Ürün kategorisi nedir? (şampuan, saç kremi, duş jeli, vücut losyonu vb.)",
+      "field_name": "urun_kategorisi",
+      "field_type": "text"
+    },
+    {
+      "question": "Tahmini sipariş miktarı nedir? (adet)",
+      "field_name": "siparis_miktari",
+      "field_type": "number"
+    },
+    {
+      "question": "Cilt/saç tipi hedef kitlesi nedir? (kuru, yağlı, hassas, normal)",
+      "field_name": "hedef_cilt_tipi",
+      "field_type": "text"
+    },
+    {
+      "question": "İçerik tercihleriniz nelerdir? (doğal, organik, vegan vb.)",
+      "field_name": "icerik_tercihleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Hacim tercihiniz nedir? (ml)",
+      "field_name": "hacim_tercihi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel formülasyon veya AR-GE ihtiyacınız var mı?",
+      "field_name": "ozel_formulasyon",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Kişisel Bakım ürün tekliflerimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

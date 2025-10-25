@@ -1,0 +1,39 @@
+{
+  "service_name": "Gümrük Operasyon Hizmetleri",
+  "service_category": "İthalat İhracat Hizmeti",
+  "customer_trigger_message": "Merhaba gümrük operasyon hizmetleri için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Gümrük Operasyon Hizmetleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "İşlem türü nedir? (ithalat, ihracat, transit)",
+      "field_name": "islem_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Ürünün gümrük tarife pozisyonu nedir?",
+      "field_name": "gtip_kodu",
+      "field_type": "text"
+    },
+    {
+      "question": "Aylık ortalama işlem hacminiz nedir?",
+      "field_name": "aylik_islem_hacmi",
+      "field_type": "text"
+    },
+    {
+      "question": "Tercih ettiğiniz gümrük ofisleri nelerdir?",
+      "field_name": "gumruk_ofisleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel belge/danışmanlık ihtiyacınız var mı?",
+      "field_name": "ozel_ihtiyaclar",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Gümrük Operasyon Hizmetleri teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

@@ -1,0 +1,34 @@
+{
+  "service_name": "Penetrasyon Test Talebi",
+  "service_category": "Siber Güvenlik Hizmetleri",
+  "customer_trigger_message": "Merhaba penetrasyon testi için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Penetrasyon Test Talebi hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Kurumunuzun adı nedir?",
+      "field_name": "kurum_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Test edilecek sistem/uygulama sayısı nedir?",
+      "field_name": "test_edilecek_sistem_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Test kapsamı nedir? (web, mobil, ağ, sosyal mühendislik vb.)",
+      "field_name": "test_kapsami",
+      "field_type": "text"
+    },
+    {
+      "question": "Test zaman çizelgesi tercihiniz nedir?",
+      "field_name": "test_zaman_cizelgesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel test gereksinimleriniz var mı?",
+      "field_name": "ozel_test_gereksinimleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Penetrasyon Test Talebi teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

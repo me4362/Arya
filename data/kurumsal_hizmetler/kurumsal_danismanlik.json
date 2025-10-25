@@ -1,0 +1,44 @@
+{
+  "service_name": "Kurumsal Danışmanlık",
+  "service_category": "Kurumsal Hizmetler",
+  "customer_trigger_message": "Merhaba kurumsal danışmanlık için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Kurumsal Danışmanlık Hizmetleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Şirketinizin sektörü nedir?",
+      "field_name": "sektor",
+      "field_type": "text"
+    },
+    {
+      "question": "Çalışan sayınız nedir?",
+      "field_name": "calisan_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "İhtiyaç duyduğunuz danışmanlık alanı nedir? (strateji, yönetim, operasyon, insan kaynakları vb.)",
+      "field_name": "danismanlik_alani",
+      "field_type": "text"
+    },
+    {
+      "question": "Proje bütçeniz nedir?",
+      "field_name": "proje_butcesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Tercih ettiğiniz zaman çizelgesi nedir?",
+      "field_name": "zaman_cizelgesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Öncelikli hedefleriniz nelerdir?",
+      "field_name": "oncelikli_hedefler",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Kurumsal Danışmanlık teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

@@ -1,0 +1,39 @@
+{
+  "service_name": "Yurtiçi Yük Nakli",
+  "service_category": "Lojistik Hizmetleri",
+  "customer_trigger_message": "Merhaba yurtiçi yük nakli için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yurtiçi Yük Nakli hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Yükünüzün çıkış adresi nedir?",
+      "field_name": "cikis_adresi",
+      "field_type": "text"
+    },
+    {
+      "question": "Yükünüzün varış adresi nedir?",
+      "field_name": "varis_adresi",
+      "field_type": "text"
+    },
+    {
+      "question": "Yükünüzün ağırlığı nedir? (kg)",
+      "field_name": "yuk_agirligi",
+      "field_type": "number"
+    },
+    {
+      "question": "Yükünüzün hacmi nedir? (m³)",
+      "field_name": "yuk_hacmi",
+      "field_type": "number"
+    },
+    {
+      "question": "Yükünüzün türü nedir?",
+      "field_name": "yuk_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Taşıma için tercih ettiğiniz tarih nedir?",
+      "field_name": "tasima_tarihi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Yurtiçi Yük Nakli teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

@@ -1,0 +1,44 @@
+{
+  "service_name": "GES Üretim Hesaplama",
+  "service_category": "Güneş Enerjisi Sistemleri",
+  "customer_trigger_message": "Merhaba GES üretim hesaplama için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; GES Üretim Hesaplama hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Proje lokasyonu nedir? (şehir)",
+      "field_name": "proje_lokasyonu",
+      "field_type": "text"
+    },
+    {
+      "question": "Planlanan panel gücü nedir? (kWp)",
+      "field_name": "panel_gucu",
+      "field_type": "number"
+    },
+    {
+      "question": "Panel sayısı ve tipi nedir?",
+      "field_name": "panel_sayisi_tipi",
+      "field_type": "text"
+    },
+    {
+      "question": "İnvertör kapasitesi nedir?",
+      "field_name": "invertor_kapasitesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Kurulum açısı ve yönü nedir?",
+      "field_name": "kurulum_acisi_yonu",
+      "field_type": "text"
+    },
+    {
+      "question": "Öz tüketim mi, satış mı planlıyorsunuz?",
+      "field_name": "uretim_amaci",
+      "field_type": "text"
+    },
+    {
+      "question": "Batarya depolama ihtiyacınız var mı?",
+      "field_name": "batarya_depolama",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size GES Üretim Hesaplama raporunuzu ileteceğiz. İlginiz için teşekkür ederiz."
+}

@@ -1,0 +1,10 @@
+{
+  "surec": "manuel_fiyatlandirma",
+  "aciklama": "Müşteri bilgileri alındıktan sonra 12 sigorta şirketinden fiyat teklifi alınır",
+  "bekleme_suresi": "15 dakika",
+  "bildirim_kanali": "WhatsApp",
+  "satis_akisi": {
+    "fiyat_verildikten_sonra": "Poliçenizi düzenleyelim mi?",
+    "onay_durumu": "Müşteri 'EVET' derse poliçe oluşturulur"
+  }
+}

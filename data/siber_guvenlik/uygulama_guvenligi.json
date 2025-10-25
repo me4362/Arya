@@ -1,0 +1,34 @@
+	{
+  "service_name": "Uygulama Güvenliği",
+  "service_category": "Siber Güvenlik Hizmetleri",
+  "customer_trigger_message": "Merhaba uygulama güvenliği için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Uygulama Güvenliği hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Kurumunuzun adı nedir?",
+      "field_name": "kurum_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Güvenliği sağlanacak uygulama sayısı nedir?",
+      "field_name": "uygulama_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Uygulama geliştirme dil ve teknolojileriniz nelerdir?",
+      "field_name": "gelistirme_teknolojileri",
+      "field_type": "text"
+    },
+    {
+      "question": "Mevcut güvenlik testleri uyguluyor musunuz?",
+      "field_name": "mevcut_testler",
+      "field_type": "text"
+    },
+    {
+      "question": "Öncelikli güvenlik gereksinimleriniz nelerdir?",
+      "field_name": "guvenlik_gereksinimleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Uygulama Güvenliği teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

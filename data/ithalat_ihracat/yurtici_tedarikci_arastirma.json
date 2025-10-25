@@ -1,0 +1,34 @@
+{
+  "service_name": "Yurtiçi Tedarikçi Araştırma",
+  "service_category": "İthalat İhracat Hizmeti",
+  "customer_trigger_message": "Merhaba yurtiçi tedarikçi araştırması için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yurtiçi Tedarikçi Araştırma hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Aradığınız tedarikçi ürün/hizmet nedir?",
+      "field_name": "tedarik_urunu",
+      "field_type": "text"
+    },
+    {
+      "question": "Tercih ettiğiniz bölge/şehir nedir?",
+      "field_name": "tercih_edilen_bolge",
+      "field_type": "text"
+    },
+    {
+      "question": "Aylık tahmini tedarik miktarınız nedir?",
+      "field_name": "aylik_tedarik_miktari",
+      "field_type": "text"
+    },
+    {
+      "question": "Kalite sertifikası gereksinimleriniz nelerdir?",
+      "field_name": "kalite_gereksinimleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Yurtiçi Tedarikçi Araştırma teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

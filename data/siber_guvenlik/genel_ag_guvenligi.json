@@ -1,0 +1,34 @@
+{
+  "service_name": "Genel Ağ Güvenliği",
+  "service_category": "Siber Güvenlik Hizmetleri",
+  "customer_trigger_message": "Merhaba genel ağ güvenliği için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Genel Ağ Güvenliği hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Kurumunuzun adı nedir?",
+      "field_name": "kurum_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Kurum büyüklüğünüz nedir? (çalışan sayısı)",
+      "field_name": "calisan_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Mevcut ağ altyapınız hakkında bilgi verebilir misiniz?",
+      "field_name": "ag_altyapisi",
+      "field_type": "text"
+    },
+    {
+      "question": "Korunması gereken kritik sistemler nelerdir?",
+      "field_name": "kritik_sistemler",
+      "field_type": "text"
+    },
+    {
+      "question": "Öncelikli güvenlik endişeleriniz nelerdir?",
+      "field_name": "guvenlik_endişeleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Genel Ağ Güvenliği teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

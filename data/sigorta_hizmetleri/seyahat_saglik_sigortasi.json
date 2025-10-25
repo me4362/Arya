@@ -1,0 +1,34 @@
+{
+  "service_name": "Seyahat Sağlık Sigortası",
+  "service_category": "Sigorta Hizmetleri",
+  "customer_trigger_message": "Merhaba Seyahat Sağlık Sigortası için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Seyahat Sağlık Sigortası ürünü için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Sigortalının adı ve soyadı",
+      "field_name": "isim_soyisim",
+      "field_type": "text"
+    },
+    {
+      "question": "Sigortalının TC Kimlik Numarası",
+      "field_name": "tckn",
+      "field_type": "number"
+    },
+    {
+      "question": "Sigortalının Doğum Tarihi (Gün/Ay/Yıl)",
+      "field_name": "dogum_tarihi",
+      "field_type": "date"
+    },
+    {
+      "question": "Ziyaret edeceği ülke",
+      "field_name": "ulke",
+      "field_type": "text"
+    },
+    {
+      "question": "Talep ettiğiniz teminat tutarı (EUR)",
+      "field_name": "teminat_tutari",
+      "field_type": "number"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size en uygun Seyahat Sağlık Sigortası fiyatlarını bildireceğim. Beklediğiniz için teşekkürler."
+}

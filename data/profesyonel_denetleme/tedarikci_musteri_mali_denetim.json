@@ -1,0 +1,39 @@
+{
+  "service_name": "Tedarikçi/Müşteri Mali Denetim",
+  "service_category": "Profesyonel Denetleme",
+  "customer_trigger_message": "Merhaba tedarikçi müşteri mali denetim için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Tedarikçi/Müşteri Mali Denetim hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Denetlenecek tedarikçi/müşteri sayısı nedir?",
+      "field_name": "denetlenecek_sayi",
+      "field_type": "number"
+    },
+    {
+      "question": "Denetim türü nedir? (tedarikçi, müşteri, her ikisi)",
+      "field_name": "denetim_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Denetim kapsamındaki finansal dönem nedir?",
+      "field_name": "finansal_donem",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel mali analiz gereksinimleriniz var mı?",
+      "field_name": "ozel_mali_analiz",
+      "field_type": "text"
+    },
+    {
+      "question": "Risk değerlendirme kriterleriniz nelerdir?",
+      "field_name": "risk_kriterleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Tedarikçi/Müşteri Mali Denetim teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

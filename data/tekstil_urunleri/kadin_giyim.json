@@ -1,0 +1,39 @@
+{
+  "service_name": "Kadın Giyim",
+  "service_category": "Tekstil Ürünleri",
+  "customer_trigger_message": "Merhaba kadın giyim için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Kadın Giyim ürünleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Ürün kategorisi nedir? (elbise, bluz, etek, pantolon vb.)",
+      "field_name": "urun_kategorisi",
+      "field_type": "text"
+    },
+    {
+      "question": "Tahmini sipariş miktarı nedir? (adet)",
+      "field_name": "siparis_miktari",
+      "field_type": "number"
+    },
+    {
+      "question": "Tercih ettiğiniz kumaş türü nedir?",
+      "field_name": "kumas_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Beden aralığı tercihiniz nedir? (XS, S, M, L, XL vb.)",
+      "field_name": "beden_araligi",
+      "field_type": "text"
+    },
+    {
+      "question": "Renk ve desen tercihleriniz nelerdir?",
+      "field_name": "renk_desen_tercihleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Aksesuar veya tamamlayıcı ürün ihtiyacınız var mı?",
+      "field_name": "aksesuar_ihtiyaci",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Kadın Giyim ürün tekliflerimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

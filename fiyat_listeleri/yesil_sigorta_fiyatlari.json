@@ -1,0 +1,31 @@
+{
+  "fiyat_tablosu": {
+    "OTOMOBIL (SUV)": {
+      "15_gun": "35 €",
+      "30_gun": "45 €",
+      "90_gun": "50 €"
+    },
+    "KAMYONET (5 KOLTUK)": {
+      "15_gun": "35 €",
+      "30_gun": "45 €",
+      "90_gun": "50 €"
+    },
+    "KAMYONET (VAN - 2 KOLTUK)": {
+      "15_gun": "40 €",
+      "30_gun": "50 €",
+      "90_gun": "55 €"
+    },
+    "MINIBUS (7 KOLTUK)": {
+      "15_gun": "45 €",
+      "30_gun": "55 €",
+      "90_gun": "60 €"
+    },
+    "MOTOSİKLET": {
+      "15_gun": "YOK",
+      "30_gun": "95 €",
+      "90_gun": "110 €"
+    }
+  },
+  "önemli_bilgilendirme": "Yeşil Sigorta Poliçesi en uzun 90 gün süreli düzenlenebiliyor. Araç stışı vb durumlarda poliçe iptali yapılamıyor",
+  "aciklama": "Şehir dışına gönderilerde ilave kargo ücreti bulunmaktadır"
+}

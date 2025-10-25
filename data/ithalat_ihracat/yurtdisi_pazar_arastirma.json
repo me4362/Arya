@@ -1,0 +1,39 @@
+{
+  "service_name": "Yurtdışı Pazar Araştırma",
+  "service_category": "İthalat İhracat Hizmeti",
+  "customer_trigger_message": "Merhaba yurtdışı pazar araştırması için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yurtdışı Pazar Araştırma hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Hedef ülke/ülkeler nelerdir?",
+      "field_name": "hedef_ulkeler",
+      "field_type": "text"
+    },
+    {
+      "question": "Ürün/hizmet kategoriniz nedir?",
+      "field_name": "urun_hizmet_kategorisi",
+      "field_type": "text"
+    },
+    {
+      "question": "Pazar büyüklüğü analizi ihtiyacınız var mı?",
+      "field_name": "pazar_buyukluk_analizi",
+      "field_type": "text"
+    },
+    {
+      "question": "Yerel düzenlemeler hakkında bilgi gereksiniminiz var mı?",
+      "field_name": "yerel_duzenlemeler",
+      "field_type": "text"
+    },
+    {
+      "question": "Araştırma zaman çizelgesi tercihiniz nedir?",
+      "field_name": "arastirma_zaman_cizelgesi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Yurtdışı Pazar Araştırma teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

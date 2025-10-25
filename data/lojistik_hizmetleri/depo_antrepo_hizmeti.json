@@ -1,0 +1,39 @@
+{
+  "service_name": "Depo/Antrepo Hizmeti",
+  "service_category": "Lojistik Hizmetleri",
+  "customer_trigger_message": "Merhaba depo antrepo hizmeti için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Depo/Antrepo Hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Depolama ihtiyacınızın olduğu şehir nedir?",
+      "field_name": "depo_sehri",
+      "field_type": "text"
+    },
+    {
+      "question": "İhtiyaç duyduğunuz depo alanı nedir? (m²)",
+      "field_name": "depo_alani",
+      "field_type": "number"
+    },
+    {
+      "question": "Depolanacak ürünlerin türü nedir?",
+      "field_name": "urun_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Depolama süresi tahmininiz nedir?",
+      "field_name": "depolama_suresi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel depolama gereksinimleriniz var mı? (soğuk hava, nem kontrolü vb.)",
+      "field_name": "ozel_gereksinimler",
+      "field_type": "text"
+    },
+    {
+      "question": "Günlük ortalama giriş-çıkış hacmi nedir?",
+      "field_name": "hareket_hacmi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Depo/Antrepo Hizmeti teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

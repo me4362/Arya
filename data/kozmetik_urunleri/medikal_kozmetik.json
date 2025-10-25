@@ -1,0 +1,39 @@
+{
+  "service_name": "Medikal Kozmetik",
+  "service_category": "Kozmetik Ürünleri",
+  "customer_trigger_message": "Merhaba medikal kozmetik için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Medikal Kozmetik ürünleri için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Ürün kategorisi nedir? (anti-aging, leke kremi, güneş koruyucu, akne tedavisi vb.)",
+      "field_name": "urun_kategorisi",
+      "field_type": "text"
+    },
+    {
+      "question": "Tahmini sipariş miktarı nedir? (adet)",
+      "field_name": "siparis_miktari",
+      "field_type": "number"
+    },
+    {
+      "question": "Aktif içerik tercihleriniz nelerdir? (retinol, hyaluronik asit, C vitamini vb.)",
+      "field_name": "aktif_icerikler",
+      "field_type": "text"
+    },
+    {
+      "question": "Konsantrasyon ve formül gücü tercihiniz nedir?",
+      "field_name": "konsantrasyon",
+      "field_type": "text"
+    },
+    {
+      "question": "Klinik test ve sertifikasyon gereksinimleriniz var mı?",
+      "field_name": "klinik_test",
+      "field_type": "text"
+    },
+    {
+      "question": "Dermatolojik onay gereksiniminiz var mı?",
+      "field_name": "dermatolojik_onay",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Medikal Kozmetik ürün tekliflerimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

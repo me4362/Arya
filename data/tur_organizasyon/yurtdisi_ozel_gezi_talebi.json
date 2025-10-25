@@ -1,0 +1,49 @@
+{
+  "service_name": "Yurtdışı Özel Gezi Talebi",
+  "service_category": "Tur Organizasyon",
+  "customer_trigger_message": "Merhaba yurtdışı özel gezi için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yurtdışı Özel Gezi Talebi için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Hedef ülke/şehir nedir?",
+      "field_name": "hedef_ulke_sehir",
+      "field_type": "text"
+    },
+    {
+      "question": "Katılımcı sayısı nedir?",
+      "field_name": "katilimci_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Gezi süresi nedir? (gün sayısı)",
+      "field_name": "gezi_suresi",
+      "field_type": "number"
+    },
+    {
+      "question": "Konaklama tercihiniz nedir? (3 yıldız, 4 yıldız, 5 yıldız, butik otel)",
+      "field_name": "konaklama_tercihi",
+      "field_type": "text"
+    },
+    {
+      "question": "Vize desteği ihtiyacınız var mı?",
+      "field_name": "vize_destegi",
+      "field_type": "text"
+    },
+    {
+      "question": "Seyahat sağlık sigortası ihtiyacınız var mı?",
+      "field_name": "saglik_sigortasi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel tur rehberi veya dil desteği ihtiyacınız var mı?",
+      "field_name": "rehber_dil_destegi",
+      "field_type": "text"
+    },
+    {
+      "question": "Tercih edilen seyahat tarihleri nedir?",
+      "field_name": "seyahat_tarihleri",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Yurtdışı Özel Gezi Talebi teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

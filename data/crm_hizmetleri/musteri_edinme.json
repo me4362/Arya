@@ -1,0 +1,39 @@
+{
+  "service_name": "Müşteri Edinme",
+  "service_category": "CRM Hizmetleri",
+  "customer_trigger_message": "Merhaba müşteri edinme için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Müşteri Edinme hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Mevcut müşteri edinme kanallarınız nelerdir?",
+      "field_name": "mevcut_kanallar",
+      "field_type": "text"
+    },
+    {
+      "question": "Aylık müşteri edinme hedefiniz nedir?",
+      "field_name": "aylik_hedef",
+      "field_type": "number"
+    },
+    {
+      "question": "Ortalama müşteri edinme maliyetiniz nedir?",
+      "field_name": "musteri_edinme_maliyeti",
+      "field_type": "text"
+    },
+    {
+      "question": "Tercih ettiğiniz pazarlama stratejileri nelerdir?",
+      "field_name": "pazarlama_stratejileri",
+      "field_type": "text"
+    },
+    {
+      "question": "Rakip analizi ihtiyacınız var mı?",
+      "field_name": "rakip_analizi_ihtiyaci",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Müşteri Edinme hizmet teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

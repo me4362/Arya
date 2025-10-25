@@ -1,0 +1,39 @@
+{
+  "service_name": "Tedarikçi Üretim Denetleme",
+  "service_category": "Profesyonel Denetleme",
+  "customer_trigger_message": "Merhaba tedarikçi üretim denetleme için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Tedarikçi Üretim Denetleme hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Denetlenecek üretim tesis sayısı nedir?",
+      "field_name": "tesis_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Üretim prosesi türü nedir?",
+      "field_name": "uretim_prosesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Ürün kategorisi ve spesifikasyonları nelerdir?",
+      "field_name": "urun_spesifikasyonlari",
+      "field_type": "text"
+    },
+    {
+      "question": "Kalite kontrol noktaları nelerdir?",
+      "field_name": "kalite_kontrol_noktalari",
+      "field_type": "text"
+    },
+    {
+      "question": "Üretim kapasite değerlendirmesi gerekiyor mu?",
+      "field_name": "kapasite_degerlendirme",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Tedarikçi Üretim Denetleme teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

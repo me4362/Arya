@@ -1,0 +1,39 @@
+{
+  "service_name": "Müşteri Derinleştirme",
+  "service_category": "CRM Hizmetleri",
+  "customer_trigger_message": "Merhaba müşteri derinleştirme için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Müşteri Derinleştirme hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirketinizin adı nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Ortalama müşteri ömür boyu değeriniz nedir?",
+      "field_name": "musteri_omur_degeri",
+      "field_type": "text"
+    },
+    {
+      "question": "Çapraz satış fırsatlarınız nelerdir?",
+      "field_name": "capraz_satis_firsatlari",
+      "field_type": "text"
+    },
+    {
+      "question": "Müşteri segmentasyon stratejiniz nedir?",
+      "field_name": "musteri_segmentasyonu",
+      "field_type": "text"
+    },
+    {
+      "question": "Kişiselleştirilmiş pazarlama uygulamalarınız var mı?",
+      "field_name": "kisisellestirilmis_pazarlama",
+      "field_type": "text"
+    },
+    {
+      "question": "Müşteri veri analizi kapasiteniz nedir?",
+      "field_name": "veri_analizi_kapasitesi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Müşteri Derinleştirme hizmet teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

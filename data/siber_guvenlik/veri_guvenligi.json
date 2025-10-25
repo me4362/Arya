@@ -1,0 +1,34 @@
+{
+  "service_name": "Veri Güvenliği",
+  "service_category": "Siber Güvenlik Hizmetleri",
+  "customer_trigger_message": "Merhaba veri güvenliği için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Veri Güvenliği hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Kurumunuzun adı nedir?",
+      "field_name": "kurum_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Korunması gereken veri türleri nelerdir?",
+      "field_name": "veri_turleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Veri depolama sistemleriniz nelerdir?",
+      "field_name": "depolama_sistemleri",
+      "field_type": "text"
+    },
+    {
+      "question": "KVKK uyumluluk durumunuz nedir?",
+      "field_name": "kvkk_durum",
+      "field_type": "text"
+    },
+    {
+      "question": "Veri şifreleme uygulamalarınız var mı?",
+      "field_name": "sifreleme_uygulamalari",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Veri Güvenliği teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

@@ -1,0 +1,39 @@
+{
+  "service_name": "Kiralık Gayrimenkul",
+  "service_category": "İnşaat Emlak Hizmetleri",
+  "customer_trigger_message": "Merhaba kiralık gayrimenkul için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Kiralık Gayrimenkul hizmeti için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "İlgilendiğiniz gayrimenkul türü nedir? (konut, işyeri, ofis vb.)",
+      "field_name": "gayrimenkul_turu",
+      "field_type": "text"
+    },
+    {
+      "question": "Tercih ettiğiniz şehir/bölge nedir?",
+      "field_name": "tercih_edilen_bolge",
+      "field_type": "text"
+    },
+    {
+      "question": "Aylık kira bütçeniz nedir?",
+      "field_name": "kira_butcesi",
+      "field_type": "text"
+    },
+    {
+      "question": "Metrekare tercihiniz nedir?",
+      "field_name": "metrekare_tercihi",
+      "field_type": "text"
+    },
+    {
+      "question": "Kiralama süresi tercihiniz nedir?",
+      "field_name": "kira_suresi",
+      "field_type": "text"
+    },
+    {
+      "question": "Öncelikli özellikler nelerdir? (eşyalı, garaj, asansör vb.)",
+      "field_name": "oncelikli_ozellikler",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size uygun Kiralık Gayrimenkul seçeneklerini ileteceğiz. İlginiz için teşekkür ederiz."
+}

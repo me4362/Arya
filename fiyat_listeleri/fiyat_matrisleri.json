@@ -1,0 +1,13 @@
+{
+  "para_birimi": "EUR",
+  "kur": "1 EUR = 50 TL",
+  "fiyat_gunceleme": "Aylık",
+  "ozel_fiyat_aranacak_araclar": [
+    "MINIBUS (8-10 KOLTUK)",
+    "KAMYONET (VAN - MAX 1500 KG)", 
+    "MINIBUS (11-15 KOLTUK)",
+    "KAMYONET (VAN - MAX 2000 KG)",
+    "KAMYONET (OPEN VAN - MAX 3500 KG)",
+    "MOTOR KARAVAN"
+  ]
+}

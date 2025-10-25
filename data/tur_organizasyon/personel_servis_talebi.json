@@ -1,0 +1,49 @@
+{
+  "service_name": "Personel Servis Talebi",
+  "service_category": "Tur Organizasyon",
+  "customer_trigger_message": "Merhaba personel servis talebi için yazmıştım",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Personel Servis Talebi için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
+  "questions": [
+    {
+      "question": "Şirket adınız nedir?",
+      "field_name": "sirket_adi",
+      "field_type": "text"
+    },
+    {
+      "question": "Taşınacak personel sayısı nedir?",
+      "field_name": "personel_sayisi",
+      "field_type": "number"
+    },
+    {
+      "question": "Güzergah bilgileri nedir? (başlangıç - varış noktaları)",
+      "field_name": "guzergah_bilgileri",
+      "field_type": "text"
+    },
+    {
+      "question": "Servis sıklığı nedir? (günlük, haftalık, sürekli)",
+      "field_name": "servis_sikligi",
+      "field_type": "text"
+    },
+    {
+      "question": "Servis saatleri nedir?",
+      "field_name": "servis_saatleri",
+      "field_type": "text"
+    },
+    {
+      "question": "Araç tipi tercihiniz nedir? (midibüs, otobüs, minibüs)",
+      "field_name": "arac_tipi",
+      "field_type": "text"
+    },
+    {
+      "question": "Özel gereksinimleriniz var mı? (klima, wifi, özel bagaj vb.)",
+      "field_name": "ozel_gereksinimler",
+      "field_type": "text"
+    },
+    {
+      "question": "Hizmet başlangıç tarihi nedir?",
+      "field_name": "hizmet_baslangic_tarihi",
+      "field_type": "text"
+    }
+  ],
+  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size Personel Servis Talebi teklifimizi ileteceğiz. İlginiz için teşekkür ederiz."
+}

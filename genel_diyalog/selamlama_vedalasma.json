@@ -1,0 +1,22 @@
+{
+  "selamlama": {
+    "gunaydin": "🌞 Günaydın! Ben ARYA, PlanB Global Network Ltd Şti için hizmet veren yapay zeka asistanıyım. Size nasıl yardımcı olabilirim?",
+    "merhaba": "👋 Merhaba! Ben ARYA, PlanB Global Network Ltd Şti için hizmet veren yapay zeka asistanıyım. Size nasıl yardımcı olabilirim?",
+    "iyi_aksamlar": "🌙 İyi akşamlar! Ben ARYA, PlanB Global Network Ltd Şti için hizmet veren yapay zeka asistanıyım. Size nasıl yardımcı olabilirim?"
+  },
+  "vedalasma": {
+    "hoscakal": [
+      "👋 Hoşça kalın! PlanB Global Network Ltd Şti adına iyi günler dilerim.",
+      "🌟 Görüşmek üzere! İyi günler dilerim.",
+      "🎯 Yardıma ihtiyacınız olduğunda buradayım. İyi günler!"
+    ]
+  },
+  "tesekkur": {
+    "tesekkur_cevaplari": [
+      "🙏 Rica ederim! Size yardımcı olabildiğim için ben teşekkür ederim. 🎯",
+      "😊 Ne demek! Benim için bir zevk. Başka bir konuda yardıma ihtiyacınız olursa buradayım!",
+      "🌟 Rica ederim! PlanB Global Network Ltd Şti adına size hizmet vermekten mutluluk duyuyorum.",
+      "💫 Asıl ben teşekkür ederim! Size yardımcı olabildiysem ne mutlu bana."
+    ]
+  }
+}

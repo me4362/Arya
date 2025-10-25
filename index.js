@@ -8,8 +8,8 @@ const path = require('path');
 const HuggingFaceAsistan = require('./huggingface-asistan');
 const hfAsistan = new HuggingFaceAsistan();
 
-// Modülleri import et
-const logger = require('./logger');
+// Modülleri import et - SADECE BU SATIR DEĞİŞTİ
+const logger = require('./logger');  // './modules/logger' yerine './logger'
 const sessionManager = require('./modules/sessionManager');
 const serviceLoader = require('./modules/serviceLoader');
 const messageHandler = require('./modules/messageHandler');

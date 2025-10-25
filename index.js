@@ -8,13 +8,8 @@ const path = require('path');
 const HuggingFaceAsistan = require('./huggingface-asistan');
 const hfAsistan = new HuggingFaceAsistan();
 
-<<<<<<< HEAD
 // Modülleri import et
 const logger = require('./modules/logger');
-=======
-// Modülleri import et - SADECE BU SATIR DEĞİŞTİ
-const logger = require('./modules/logger');  // './modules/logger' yerine './logger'
->>>>>>> a89f4df0dfa7be7782c3b47ada19a86dea944006
 const sessionManager = require('./modules/sessionManager');
 const serviceLoader = require('./modules/serviceLoader');
 const messageHandler = require('./modules/messageHandler');
@@ -257,8 +252,4 @@ setTimeout(() => {
   if (!client.info) {
     console.log('⏳ WhatsApp bağlantısı bekleniyor... QR kodu tarayın.');
   }
-<<<<<<< HEAD
 }, 3000);
-=======
-}, 3000);
->>>>>>> a89f4df0dfa7be7782c3b47ada19a86dea944006

@@ -1,4 +1,4 @@
-// index.js - ARYA Bot Ana Dosyası (MODÜLER YAPILI - GÜNCELLENMİŞ)
+// index.js - ARYA Bot Ana Dosyası (SESSION PATH DÜZELTİLMİŞ)
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const express = require('express');
@@ -18,10 +18,10 @@ const menuHandler = require('./modules/menuHandler');
 // Global client utility - EKLENDİ
 const { setGlobalClient } = require('./modules/utils/globalClient');
 
-// WhatsApp client oluşturma
+// WhatsApp client oluşturma - SESSION PATH DÜZELTİLDİ
 const client = new Client({
   authStrategy: new LocalAuth({
-    dataPath: './session'
+    dataPath: "./session"  // ROOT DİZİN - SESSION PATH DÜZELTİLDİ
   }),
   puppeteer: {
     headless: true,

@@ -1,4 +1,4 @@
-// modules/serviceFlow.js - GÜNCELLENDİ (MESAJ GÖNDERME EKLENDİ)
+// modules/serviceFlow.js - GÜNCELLENDİ (YEŞİL SİGORTA SATIŞ ATLAMA EKLENDİ)
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
@@ -49,7 +49,7 @@ async function startServiceFlow(message, service) {
   }
 }
 
-// Fiyat listesi işleme - GÜNCELLENDİ (MESAJ GÖNDERME EKLENDİ)
+// Fiyat listesi işleme - GÜNCELLENDİ (YEŞİL SİGORTA SATIŞ ATLAMA EKLENDİ)
 async function handlePriceList(message, service) {
   const priceData = service.data;
   
@@ -58,11 +58,26 @@ async function handlePriceList(message, service) {
   // JSON'daki mesajı direkt kullan
   let responseText = priceData.mesaj || 'Fiyat bilgisi bulunamadı.';
   
-  // MESAJI GÖNDER - BU SATIR EKLENDİ
+  // MESAJI GÖNDER
   console.log(`📨 Fiyat mesajı gönderiliyor: "${responseText}"`);
   await sendServiceMessage(message, responseText);
   
-  // 2 saniye bekle ve satış teklifini göster
+  // ✅ YEŞİL SİGORTA İSE SATIŞ TEKLİFİ ATLA
+  if (service.name === 'yesil_sigorta_fiyatlari') {
+    console.log('🌿 Yeşil sigorta - satış teklifi atlanıyor, ana menüye dönülüyor');
+    
+    // Doğrudan ana menüye dön
+    const serviceLoader = require('./serviceLoader');
+    const menuHandler = require('./menuHandler');
+    
+    setTimeout(async () => {
+      await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
+    }, 2000);
+    
+    return; // Fonksiyondan çık
+  }
+  
+  // ❌ DİĞER FİYAT LİSTELERİ İÇİN SATIŞ TEKLİFİ (ESKİ KOD)
   setTimeout(async () => {
     try {
       const saleFlow = require('./saleFlow');

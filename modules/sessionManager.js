@@ -1,9 +1,9 @@
-// modules/sessionManager.js - TAMAMEN YENİLENDİ (YENİ TIMER SİSTEMİ)
+// modules/sessionManager.js - DÜZELTİLMİŞ TIMER SİSTEMİ
 const logger = require('./logger');
 
 const userSessions = new Map();
 
-// Kullanıcı oturumu oluştur - YENİ TIMER YAPISI
+// Kullanıcı oturumu oluştur
 function createUserSession(userId) {
   const session = {
     userId: userId,
@@ -42,10 +42,10 @@ function getUserSession(userId) {
   return session;
 }
 
-// SELAMLAMA TIMER'I - 60 sn sonra yardım sorusu
+// SELAMLAMA TIMER'I - 60 sn sonra yardım sorusu + 180 sn sonra vedalaşma
 function startGreetingTimer(userId, message, services) {
   const session = getUserSession(userId);
-  clearAllTimers(userId); // Önceki timer'ları temizle
+  clearAllTimers(userId);
 
   console.log(`⏰ Selamlama timer başlatıldı: ${userId}`);
 
@@ -56,8 +56,18 @@ function startGreetingTimer(userId, message, services) {
       
       await sendHelpMessage(message, 'greeting');
       
-      // 180 sn sonra vedalaşma timer'ını başlat
-      startGoodbyeTimer(userId, message);
+      // 180 sn sonra vedalaşma - DOĞRUDAN BURADA
+      const goodbyeTimer = setTimeout(async () => {
+        const finalSession = getUserSession(userId);
+        if (finalSession && !finalSession.currentService) {
+          console.log(`⏰ Vedalaşma zaman aşımı: ${userId}`);
+          await handleGoodbye(message);
+        }
+      }, 180 * 1000); // 180 saniye
+
+      updateUserSession(userId, { 
+        goodbyeTimer: goodbyeTimer
+      });
     }
   }, 60 * 1000); // 60 saniye
 
@@ -67,7 +77,7 @@ function startGreetingTimer(userId, message, services) {
   });
 }
 
-// MENÜ SEÇİM TIMER'I - 60 sn sonra seçim uyarısı
+// MENÜ SEÇİM TIMER'I - 60 sn sonra seçim uyarısı + 180 sn sonra vedalaşma
 function startSelectionTimer(userId, message, services) {
   const session = getUserSession(userId);
   clearAllTimers(userId);
@@ -81,30 +91,23 @@ function startSelectionTimer(userId, message, services) {
       
       await sendHelpMessage(message, 'selection');
       
-      // 180 sn sonra vedalaşma timer'ını başlat
-      startGoodbyeTimer(userId, message);
+      // 180 sn sonra vedalaşma - DOĞRUDAN BURADA
+      const goodbyeTimer = setTimeout(async () => {
+        const finalSession = getUserSession(userId);
+        if (finalSession && !finalSession.currentService) {
+          console.log(`⏰ Vedalaşma zaman aşımı: ${userId}`);
+          await handleGoodbye(message);
+        }
+      }, 180 * 1000); // 180 saniye
+
+      updateUserSession(userId, { 
+        goodbyeTimer: goodbyeTimer
+      });
     }
   }, 60 * 1000); // 60 saniye
 
   updateUserSession(userId, { 
     selectionTimer: selectionTimer
-  });
-}
-
-// VEDALAŞMA TIMER'I - 180 sn sonra vedalaşma
-function startGoodbyeTimer(userId, message) {
-  const session = getUserSession(userId);
-  
-  const goodbyeTimer = setTimeout(async () => {
-    const currentSession = getUserSession(userId);
-    if (currentSession && !currentSession.currentService) {
-      console.log(`⏰ Vedalaşma zaman aşımı: ${userId}`);
-      await handleGoodbye(message);
-    }
-  }, 180 * 1000); // 180 saniye
-
-  updateUserSession(userId, { 
-    goodbyeTimer: goodbyeTimer
   });
 }
 
@@ -194,7 +197,6 @@ module.exports = {
   getUserSession,
   startGreetingTimer,
   startSelectionTimer,
-  startGoodbyeTimer,
   stopAllTimers,
   clearSaleTimer,
   clearAllTimers,

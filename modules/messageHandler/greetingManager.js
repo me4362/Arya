@@ -1,4 +1,4 @@
-// modules/messageHandler/greetingManager.js - GÜNCELLENDİ (SAAT DİLİMLİ VEDALAŞMA)
+// modules/messageHandler/greetingManager.js - TAM VE DÜZELTİLMİŞ
 const serviceLoader = require('../serviceLoader');
 const personalization = require('./personalization');
 const { sendMessageWithoutQuote } = require('../utils/globalClient');
@@ -40,6 +40,7 @@ async function handleGreeting(message, services, contactName = '') {
   const greetingType = getTimeBasedGreeting();
   const greetingMsg = personalization.createPersonalizedGreeting(contactName, greetingType);
   
+  // SELAMLAMA MESAJINI GÖNDER - EKSİK OLAN SATIR!
   await sendGreetingMessage(message, greetingMsg);
   
   // YENİ: 60 saniye sonra yardım sorusu için timer başlat

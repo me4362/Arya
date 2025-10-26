@@ -1,4 +1,4 @@
-// modules/serviceFlow.js - GÜNCELLENDİ
+// modules/serviceFlow.js - GÜNCELLENDİ (MESAJ GÖNDERME EKLENDİ)
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
@@ -10,6 +10,7 @@ const { sendMessageWithoutQuote } = require('./utils/globalClient');
 async function sendServiceMessage(message, text) {
   try {
     await sendMessageWithoutQuote(message.from, text);
+    console.log(`📨 Servis mesajı gönderildi: "${text.substring(0, 50)}..."`);
   } catch (error) {
     console.error('Servis mesajı gönderme hatası, fallback kullanılıyor:', error.message);
     await message.reply(text);
@@ -48,37 +49,18 @@ async function startServiceFlow(message, service) {
   }
 }
 
-// Fiyat listesi işleme - GÜNCELLENDİ
+// Fiyat listesi işleme - GÜNCELLENDİ (MESAJ GÖNDERME EKLENDİ)
 async function handlePriceList(message, service) {
   const priceData = service.data;
   
   console.log(`💰 Fiyat listesi işleniyor: ${service.name}`, priceData);
   
-  let priceText = `💰 *${service.name.replace(/_/g, ' ').toUpperCase()}*\n\n`;
+  // JSON'daki mesajı direkt kullan
+  let responseText = priceData.mesaj || 'Fiyat bilgisi bulunamadı.';
   
-  if (priceData.fiyat_tablosu) {
-    // Yeşil Sigorta fiyat formatı
-    for (const [aracTipi, fiyatlar] of Object.entries(priceData.fiyat_tablosu)) {
-      priceText += `*${aracTipi}:*\n`;
-      for (const [sure, fiyat] of Object.entries(fiyatlar)) {
-        const sureText = sure.replace('_gun', ' gün').replace('15_gun', '15 gün').replace('30_gun', '30 gün').replace('90_gun', '90 gün');
-        priceText += `  • ${sureText}: ${fiyat}\n`;
-      }
-      priceText += '\n';
-    }
-  }
-  
-  // ÖNEMLİ BİLGİLENDİRME ekle
-  if (priceData.önemli_bilgilendirme) {
-    priceText += `⚠️ *Önemli Bilgilendirme:*\n${priceData.önemli_bilgilendirme}\n\n`;
-  }
-  
-  // AÇIKLAMA ekle
-  if (priceData.aciklama) {
-    priceText += `📝 *Açıklama:* ${priceData.aciklama}\n\n`;
-  }
-  
-  await sendServiceMessage(message, priceText);
+  // MESAJI GÖNDER - BU SATIR EKLENDİ
+  console.log(`📨 Fiyat mesajı gönderiliyor: "${responseText}"`);
+  await sendServiceMessage(message, responseText);
   
   // 2 saniye bekle ve satış teklifini göster
   setTimeout(async () => {

@@ -1,4 +1,4 @@
-// modules/messageHandler/greetingManager.js - TAM VE DÜZELTİLMİŞ
+// modules/messageHandler/greetingManager.js - GÜNCELLENDİ
 const serviceLoader = require('../serviceLoader');
 const personalization = require('./personalization');
 const { sendMessageWithoutQuote } = require('../utils/globalClient');
@@ -21,42 +21,35 @@ function getTimeBasedGreeting() {
   return 'iyi_aksamlar';
 }
 
-// SAAT DİLİMİNE GÖRE VEDALAŞMA
-function getTimeBasedGoodbye() {
-  const hour = new Date().getHours();
-  
-  if (hour >= 5 && hour < 11) {
-    return 'İyi günler! PlanB Global Network Ltd Şti adına başarılı bir gün dilerim. 🌞';
-  } else if (hour >= 11 && hour < 17) {
-    return 'İyi günler! PlanB Global Network Ltd Şti adına gününüz verimli geçsin. ☀️';
-  } else if (hour >= 17 && hour < 23) {
-    return 'İyi akşamlar! PlanB Global Network Ltd Şti adına huzurlu bir akşam dilerim. 🌙';
-  } else {
-    return 'İyi geceler! PlanB Global Network Ltd Şti adına huzurlu uykular dilerim. 🌃';
-  }
-}
-
 async function handleGreeting(message, services, contactName = '') {
   const greetingType = getTimeBasedGreeting();
   const greetingMsg = personalization.createPersonalizedGreeting(contactName, greetingType);
   
-  // SELAMLAMA MESAJINI GÖNDER - EKSİK OLAN SATIR!
   await sendGreetingMessage(message, greetingMsg);
   
-  // YENİ: 60 saniye sonra yardım sorusu için timer başlat
-  const sessionManager = require('../sessionManager');
-  sessionManager.startGreetingTimer(message.from, message, services);
+  // Hemen ardından yardım sorusunu sor
+  setTimeout(async () => {
+    const helpQuestion = contactName ? 
+      `🤔 ${contactName}, size yardımcı olabilmem için lütfen bana hangi konuda yardım istediğinizi yazarmısınız?` :
+      `🤔 Size yardımcı olabilmem için lütfen bana hangi konuda yardım istediğinizi yazarmısınız?`;
+    
+    await sendGreetingMessage(message, helpQuestion);
+    
+    const sessionManager = require('../sessionManager');
+    sessionManager.startHelpTimer(message.from, message, services);
+  }, 1000);
   
   return true;
 }
 
-// Teşekkür mesajını işle
+// Teşekkür mesajını işle - GÜNCELLENDİ
 async function handleThanks(message, contactName = '') {
   const greetings = serviceLoader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
   const thanksResponses = greetings?.tesekkur?.tesekkur_cevaplari || [
     '🙏 Rica ederim! Size yardımcı olabildiğim için ben teşekkür ederim. 🎯'
   ];
   
+  // Rastgele bir teşekkür cevabı seç
   const randomThanks = thanksResponses[Math.floor(Math.random() * thanksResponses.length)];
   
   let thanksMsg = randomThanks;
@@ -67,24 +60,25 @@ async function handleThanks(message, contactName = '') {
   thanksMsg += `\n\nBaşka bir konuda yardıma ihtiyacınız varsa "menü" yazabilirsiniz.`;
   
   await sendGreetingMessage(message, thanksMsg);
-  
-  // Timer'ları temizle (etkileşim oldu)
-  const sessionManager = require('../sessionManager');
-  sessionManager.stopAllTimers(message.from);
-  
   return true;
 }
 
-// Vedalaşma mesajını işle - YENİ: SAAT DİLİMLİ
+// Vedalaşma mesajını işle - GÜNCELLENDİ
 async function handleGoodbye(message, contactName = '') {
-  const goodbyeMsg = getTimeBasedGoodbye();
+  const greetings = serviceLoader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
+  const goodbyeResponses = greetings?.vedalasma?.hoscakal || [
+    '👋 Hoşça kalın! PlanB Global Network Ltd Şti adına iyi günler dilerim.'
+  ];
   
-  let finalMessage = goodbyeMsg;
+  // Rastgele bir vedalaşma mesajı seç
+  const randomGoodbye = goodbyeResponses[Math.floor(Math.random() * goodbyeResponses.length)];
+  
+  let goodbyeMsg = randomGoodbye;
   if (contactName) {
-    finalMessage = `${contactName}, ${goodbyeMsg.toLowerCase()}`;
+    goodbyeMsg = `${contactName}, ${randomGoodbye}`;
   }
   
-  await sendGreetingMessage(message, finalMessage);
+  await sendGreetingMessage(message, goodbyeMsg);
   
   // Oturumu temizle
   const sessionManager = require('../sessionManager');
@@ -96,14 +90,11 @@ async function handleGoodbye(message, contactName = '') {
     collectedAnswers: {}
   });
   
-  sessionManager.clearAllTimers(message.from);
-  
   return true;
 }
 
 module.exports = {
   getTimeBasedGreeting,
-  getTimeBasedGoodbye,
   handleGreeting,
   handleThanks,
   handleGoodbye

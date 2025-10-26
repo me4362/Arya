@@ -1,4 +1,4 @@
-// modules/messageHandler/sessionRouter.js - CALLBACK VERSİYON
+// modules/messageHandler/sessionRouter.js - GÜNCELLENDİ (YENİ TIMER ENTEGRASYONU)
 const sessionManager = require('../sessionManager');
 const serviceLoader = require('../serviceLoader');
 const menuHandler = require('../menuHandler');
@@ -8,18 +8,15 @@ const serviceMatcher = require('./serviceMatcher');
 const messageParser = require('./messageParser');
 const { sendMessageWithoutQuote } = require('../utils/globalClient');
 
-// Alıntısız mesaj gönderme yardımcı fonksiyonu
 async function sendResponse(message, text) {
   try {
     await sendMessageWithoutQuote(message.from, text);
   } catch (error) {
-    console.error('Alıntısız mesaj gönderme hatası, fallback kullanılıyor:', error.message);
-    // Fallback: normal reply
     await message.reply(text);
   }
 }
 
-// Ana route fonksiyonu - CALLBACK EKLENDİ
+// Ana route fonksiyonu - YENİ TIMER ENTEGRASYONU
 async function route(message, parsedMessage, contactName = '', onServiceFound = null) {
   const { greetingPart, servicePart, cleanMessage, originalMessage } = parsedMessage;
   const services = serviceLoader.loadAllServices();
@@ -27,14 +24,16 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   
   console.log(`🔍 Route: Durum=${session?.currentState}, Mesaj=${cleanMessage}`);
   
-  // Servis bulundu callback'i
   const serviceFound = () => {
     if (onServiceFound && typeof onServiceFound === 'function') {
       onServiceFound();
     }
   };
   
-  // TEŞEKKÜR MESAJLARI - EN ÖNCELİKLİ
+  // Kullanıcı cevap verdiğinde timer'ları durdur
+  sessionManager.stopAllTimers(message.from);
+  
+  // TEŞEKKÜR MESAJLARI
   if (messageParser.isThanksMessage(cleanMessage)) {
     console.log(`🙏 Teşekkür mesajı algılandı`);
     serviceFound();
@@ -42,7 +41,7 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
     return;
   }
   
-  // VEDALAŞMA MESAJLARI - ÖNCELİKLİ
+  // VEDALAŞMA MESAJLARI
   if (messageParser.isGoodbyeMessage(cleanMessage)) {
     console.log(`👋 Vedalaşma mesajı algılandı`);
     serviceFound();
@@ -50,7 +49,7 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
     return;
   }
   
-  // ÇIKIŞ KOMUTLARI - ÖNCELİKLİ
+  // ÇIKIŞ KOMUTLARI
   if (isExitCommand(cleanMessage)) {
     console.log(`🚪 Çıkış komutu algılandı`);
     serviceFound();
@@ -58,7 +57,7 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
     return;
   }
   
-  // DİĞER HİZMETLER İSTEĞİ - ÖNCELİKLİ
+  // DİĞER HİZMETLER İSTEĞİ
   if (messageParser.isOtherServicesRequest(cleanMessage)) {
     console.log(`🔄 Diğer hizmetler isteği algılandı`);
     serviceFound();
@@ -66,16 +65,19 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
     return;
   }
   
-  // MENÜ İSTEĞİ - ÖNCELİKLİ
+  // MENÜ İSTEĞİ - YENİ: SEÇİM TIMER'I BAŞLAT
   if (messageParser.isMenuRequest(cleanMessage)) {
     console.log(`📋 Menü isteği algılandı`);
     serviceFound();
     sessionManager.updateUserSession(message.from, { currentState: 'main_menu' });
     await menuHandler.showMainMenu(message, services);
+    
+    // YENİ: Menü gösterildikten sonra seçim timer'ını başlat
+    sessionManager.startSelectionTimer(message.from, message, services);
     return;
   }
   
-  // ÖNCE: Satış cevabı durumunu kontrol et
+  // SATIŞ CEVABI DURUMU
   if (session && session.currentState === 'waiting_for_sale_response') {
     serviceFound();
     const saleFlow = require('../saleFlow');
@@ -83,17 +85,17 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
     return;
   }
   
-  // SONRA: Soru-cevap akışı
+  // SORU-CEVAP AKIŞI
   if (session && session.currentState === 'collecting_answer') {
     serviceFound();
     const success = await serviceFlow.handleAnswer(message, cleanMessage, session);
     return;
   }
   
-  // SAYI SEÇİMİ - ÖNCELİKLİ
+  // SAYI SEÇİMİ
   if (messageParser.isNumberInput(cleanMessage)) {
     const number = parseInt(cleanMessage);
-    console.log(`🔢 Sayı seçimi algılandı: ${number}, Durum: ${session?.currentState}`);
+    console.log(`🔢 Sayı seçimi algılandı: ${number}`);
     serviceFound();
     await menuHandler.handleNumberSelection(message, number, services);
     return;
@@ -115,12 +117,12 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
     return;
   }
   
-  // Eğer selamlama varsa, önce selamla
+  // Eğer selamlama varsa
   if (greetingPart && messageParser.isGreeting(greetingPart)) {
     serviceFound();
     await greetingManager.handleGreeting(message, services, contactName);
     
-    // Eğer selamlamadan sonra işlem de varsa, 2 saniye bekle ve işlemi başlat
+    // Eğer selamlamadan sonra işlem de varsa
     if (servicePart && servicePart.length > 0) {
       setTimeout(async () => {
         await processServiceRequest(message, servicePart, services, serviceFound);
@@ -130,31 +132,32 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
     return;
   }
   
-  // Sadece işlem varsa, direkt işlemi başlat
+  // Sadece işlem varsa
   if (servicePart && servicePart.length > 0) {
     await processServiceRequest(message, servicePart, services, serviceFound);
     return;
   }
   
-  // Bilinmeyen mesaj - Hugging Face denenebilir (callback çağrılmaz)
-  console.log('🔍 Bilinmeyen mesaj türü - Hugging Face denenebilir');
+  // Bilinmeyen mesaj
+  console.log('🔍 Bilinmeyen mesaj türü');
   await handleUnknownMessage(message, services, contactName);
 }
 
-// Process Service Request - CALLBACK EKLENDİ
+// Kalan fonksiyonlar aynı kalacak...
 async function processServiceRequest(message, serviceRequest, services, serviceFound = null) {
   console.log(`🔍 Servis isteği işleniyor: "${serviceRequest}"`);
   
-  // Özel durumlar - servis olarak aranmamalı
   if (serviceRequest.toLowerCase().includes('menü') || serviceRequest.toLowerCase().includes('menu')) {
     console.log(`📋 Menü isteği - servis olarak aranmayacak`);
     if (serviceFound) serviceFound();
     sessionManager.updateUserSession(message.from, { currentState: 'main_menu' });
     await menuHandler.showMainMenu(message, services);
+    
+    // YENİ: Seçim timer'ını başlat
+    sessionManager.startSelectionTimer(message.from, message, services);
     return;
   }
   
-  // Anlamsız mesaj kontrolü
   if (isMeaninglessMessage(serviceRequest)) {
     console.log(`❓ Anlamsız mesaj algılandı`);
     if (serviceFound) serviceFound();
@@ -168,36 +171,29 @@ async function processServiceRequest(message, serviceRequest, services, serviceF
     console.log(`✅ Servis eşleşti: ${matchedService.type} - ${matchedService.name}`);
     if (serviceFound) serviceFound();
     
-    // DİYALOG TİPİ CEVAPLAR İÇİN
     if (matchedService.type === 'diyalog') {
       await sendResponse(message, matchedService.data.cevap);
-      return;
-    }
-    
-    if (matchedService.type === 'category') {
+    } else if (matchedService.type === 'category') {
       await menuHandler.showCategoryOptions(message, matchedService, services);
       sessionManager.updateUserSession(message.from, { currentState: `submenu_${matchedService.name}` });
+      
+      // YENİ: Seçim timer'ını başlat
+      sessionManager.startSelectionTimer(message.from, message, services);
     } else {
       await serviceFlow.startServiceFlow(message, matchedService);
     }
   } else {
     console.log(`❌ Servis eşleşmedi: "${serviceRequest}"`);
-    // Servis bulunamadı - callback çağrılmaz (Hugging Face devreye girer)
     await handleUnknownMessage(message, services);
   }
 }
 
-// Kalan fonksiyonlar aynı kalacak...
-// [isExitCommand, handleExitCommand, handleOtherServicesRequest, handleHelpRequest, 
-//  handleCancelRequest, isMeaninglessMessage, handleMeaninglessMessage, handleUnknownMessage]
-
-// Çıkış komutu kontrolü
+// Diğer yardımcı fonksiyonlar (isExitCommand, handleExitCommand, vb.) aynı kalacak...
 function isExitCommand(message) {
   const exitCommands = ['çıkış', 'çıkıs', 'exit', 'quit', 'geri', 'ana menü', 'ana menu', 'menüye dön', 'menuye don', 'back', 'return'];
   return exitCommands.some(cmd => message.includes(cmd));
 }
 
-// Çıkış komutu işleme
 async function handleExitCommand(message, services, contactName = '') {
   sessionManager.updateUserSession(message.from, { 
     currentState: 'main_menu',
@@ -214,9 +210,11 @@ async function handleExitCommand(message, services, contactName = '') {
   
   await sendResponse(message, exitText);
   await menuHandler.showMainMenu(message, services);
+  
+  // YENİ: Seçim timer'ını başlat
+  sessionManager.startSelectionTimer(message.from, message, services);
 }
 
-// Diğer hizmetler isteği işleme
 async function handleOtherServicesRequest(message, services, contactName = '') {
   console.log(`🔍 Diğer hizmetler isteği algılandı`);
   
@@ -227,12 +225,13 @@ async function handleOtherServicesRequest(message, services, contactName = '') {
   
   await sendResponse(message, otherServicesText);
   
-  // Ana menüyü göster
   sessionManager.updateUserSession(message.from, { currentState: 'main_menu' });
   await menuHandler.showMainMenu(message, services);
+  
+  // YENİ: Seçim timer'ını başlat
+  sessionManager.startSelectionTimer(message.from, message, services);
 }
 
-// Yardım isteği işleme
 async function handleHelpRequest(message, services, contactName = '') {
   const personalization = require('./personalization');
   const helpText = contactName ? 
@@ -247,7 +246,6 @@ async function handleHelpRequest(message, services, contactName = '') {
     `• "teşekkür ederim" diyerek konuşmayı bitirebilirsiniz`);
 }
 
-// İptal isteği işleme
 async function handleCancelRequest(message, services, contactName = '') {
   sessionManager.updateUserSession(message.from, { 
     currentState: 'main_menu',
@@ -264,21 +262,22 @@ async function handleCancelRequest(message, services, contactName = '') {
   
   await sendResponse(message, cancelText);
   await menuHandler.showMainMenu(message, services);
+  
+  // YENİ: Seçim timer'ını başlat
+  sessionManager.startSelectionTimer(message.from, message, services);
 }
 
-// Anlamsız mesaj kontrolü
 function isMeaninglessMessage(message) {
   const meaninglessPatterns = [
-    /^[\u{1F600}-\u{1F64F}]+$/u, // Sadece emoji
-    /^[^\w\s]+$/, // Sadece özel karakterler
-    /^.{1,2}$/, // 1-2 karakter
-    /^(.)\1+$/, // Aynı karakterin tekrarı (aaa, ???)
+    /^[\u{1F600}-\u{1F64F}]+$/u,
+    /^[^\w\s]+$/,
+    /^.{1,2}$/,
+    /^(.)\1+$/,
   ];
   
   return meaninglessPatterns.some(pattern => pattern.test(message));
 }
 
-// Anlamsız mesaj işleme
 async function handleMeaninglessMessage(message, services) {
   await sendResponse(message, `🤔 Anlayamadım. Lütfen:\n\n` +
     `• Bir hizmet adı yazın\n` +
@@ -286,7 +285,6 @@ async function handleMeaninglessMessage(message, services) {
     `• "yardım" yazarak destek alın`);
 }
 
-// Bilinmeyen mesaj işleme
 async function handleUnknownMessage(message, services, contactName = '') {
   const personalization = require('./personalization');
   const unknownText = personalization.createPersonalizedUnknownMessage(contactName);

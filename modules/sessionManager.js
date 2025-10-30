@@ -64,7 +64,7 @@ function addToMessageBuffer(userId, message) {
   
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
-  }, 35000);
+  }, 10000);
   
   return session.messageBuffer;
 }

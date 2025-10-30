@@ -131,10 +131,8 @@ function findMatchingService(message, services) {
   // TAM EŞLEŞMELER - TÜM SERVİSLER
   const exactMatches = {
     // === SİGORTA HİZMETLERİ ===
-    // DEĞİŞİKLİK: Tüm yeşil sigorta istekleri fiyat listesine yönlensin
-    'yeşil sigorta': 'yesil_sigorta_fiyatlari',  // yesil_sigorta → yesil_sigorta_fiyatlari
-    'yesil sigorta': 'yesil_sigorta_fiyatlari',  // yesil_sigorta → yesil_sigorta_fiyatlari
-    
+    'yeşil sigorta': 'yesil_sigorta_fiyatlari',
+    'yesil sigorta': 'yesil_sigorta_fiyatlari',
     'trafik sigortası': 'trafik_sigortasi',
     'trafik sigortasi': 'trafik_sigortasi',
     'kasko sigortası': 'kasko',
@@ -446,7 +444,7 @@ function createServiceNotAvailableResponse(message) {
   };
 }
 
-// Diyalog cevabı oluşturma fonksiyonu - GÜNCELLENDİ
+// Diyalog cevabı oluşturma fonksiyonu - TAMAMLANDI
 function createDiyalogCevabi(soru, dosyaAdi, tip) {
   try {
     console.log(`💬 Diyalog cevabı oluşturuluyor: ${dosyaAdi}.json, Tip: ${tip}`);
@@ -501,4 +499,40 @@ function createDiyalogCevabi(soru, dosyaAdi, tip) {
     }
 
     if (cevap) {
-      console.log(`✅ Diyalog cevabı oluşturuldu:
+      console.log(`✅ Diyalog cevabı oluşturuldu: ${cevap.substring(0, 50)}...`);
+      return {
+        type: 'diyalog',
+        data: { cevap: cevap },
+        category: 'genel_diyalog', 
+        name: dosyaAdi
+      };
+    } else {
+      console.log(`❌ Diyalog cevabı bulunamadı: ${dosyaAdi}`);
+      return createFallbackCevap(tip);
+    }
+
+  } catch (error) {
+    console.log(`❌ Diyalog cevabı oluşturma hatası: ${error.message}`);
+    return createFallbackCevap(tip);
+  }
+}
+
+// Fallback cevap fonksiyonu - EKLENDİ
+function createFallbackCevap(tip) {
+  const fallbackMessages = {
+    'kimlik': 'PlanB Global Network Ltd Şti adına çalışan bir yapay zeka asistanıyım. Size profesyonel hizmetlerimiz konusunda yardımcı olabilirim.',
+    'iletisim': 'İnsan desteğine ihtiyacınız olduğunda sizi ilgili departmanlara yönlendirebilirim. Öncelikle size nasıl yardımcı olabileceğimi belirtebilir misiniz?',
+    'firma': 'PlanB Global Network Ltd Şti olarak sigorta, yazılım, siber güvenlik, lojistik ve ithalat/ihracat başta olmak üzere birçok profesyonel hizmet sunmaktayız.'
+  };
+  
+  return {
+    type: 'diyalog',
+    data: { cevap: fallbackMessages[tip] || 'Size nasıl yardımcı olabilirim?' },
+    category: 'genel_diyalog',
+    name: 'fallback_cevap'
+  };
+}
+
+module.exports = {
+  findMatchingService
+};

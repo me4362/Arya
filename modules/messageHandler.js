@@ -95,6 +95,44 @@ function isActiveProcessState(state) {
   return activeStates.some(activeState => state.includes(activeState));
 }
 
+// ✅ YENİ FONKSİYON: Akıllı buffer birleştirme kararı
+function shouldCombineMessages(newMessage, existingBuffer) {
+  if (existingBuffer.length === 0) return false;
+  
+  const lastMessage = existingBuffer[existingBuffer.length - 1];
+  const combinedText = existingBuffer.join(' ') + ' ' + newMessage;
+  
+  console.log(`🔍 Buffer analizi: Son mesaj="${lastMessage}", Yeni="${newMessage}"`);
+  
+  // 1. Kısa mesajlar hemen birleştirilsin (sohbet devamı)
+  const isShortSequence = newMessage.length < 20 && lastMessage.length < 20;
+  
+  // 2. Noktalama ile bitiyorsa veya başlıyorsa birleştir
+  const hasPunctuationContinuation = (
+    lastMessage.endsWith('.') || 
+    lastMessage.endsWith(',') ||
+    newMessage.startsWith('ve ') ||
+    newMessage.startsWith('ama ') ||
+    newMessage.startsWith('sonra ') ||
+    newMessage.startsWith('yani ')
+  );
+  
+  // 3. Aynı konu devam ediyorsa birleştir
+  const commonTopics = ['sigorta', 'fiyat', 'ücret', 'kasko', 'trafik', 'yeşil', 'yesil', 'hizmet', 'yardım'];
+  const hasCommonTopic = commonTopics.some(topic => 
+    lastMessage.toLowerCase().includes(topic) && newMessage.toLowerCase().includes(topic)
+  );
+  
+  // 4. Toplam karakter sınırı (çok uzun olmasın)
+  const isWithinLengthLimit = combinedText.length < 200;
+  
+  const shouldCombine = (isShortSequence || hasPunctuationContinuation || hasCommonTopic) && isWithinLengthLimit;
+  
+  console.log(`📊 Birleştirme kararı: Kısa=${isShortSequence}, Noktalama=${hasPunctuationContinuation}, Konu=${hasCommonTopic}, Uzunluk=${isWithinLengthLimit} → ${shouldCombine ? 'BİRLEŞTİR' : 'BEKLE'}`);
+  
+  return shouldCombine;
+}
+
 // ✅ YENİ FONKSİYON: Birleştirilmiş mesajı işle
 async function processCombinedMessage(message, combinedMessage, contactInfo) {
   console.log(`🎯 Birleştirilmiş mesaj işleniyor: "${combinedMessage}"`);
@@ -123,16 +161,16 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
     const serviceRequest = parsedMessage.servicePart || combinedMessage;
     await sendServiceNotAvailable(message, serviceRequest);
     
-    // Ana menüye dön
+    // Ana menüye dön - 30 SANİYE BEKLE
     setTimeout(async () => {
       const serviceLoader = require('./serviceLoader');
       const menuHandler = require('./menuHandler');
       await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
-    }, 3000);
+    }, 30000); // 30 saniye
   }
 }
 
-// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - BUFFER BYPASS EKLENDİ
+// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - AKILLI BUFFER EKLENDİ
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -197,14 +235,17 @@ async function handleMessage(message) {
     const bufferStatus = sessionManager.getBufferStatus(message.from);
     console.log(`📥 Buffer'a eklendi: ${bufferStatus.bufferSize} mesaj -> "${bufferStatus.bufferContent}"`);
     
-    // Eğer buffer'da 1'den fazla mesaj varsa veya bu özel bir komut değilse, timer'ı bekleyelim
-    if (!isSpecialCommand && bufferStatus.bufferSize === 1) {
-      console.log(`⏰ İlk mesaj, 10 saniye bekleniyor...`);
+    // ✅ GÜNCELLENDİ: Akıllı buffer birleştirme kararı
+    const shouldCombine = shouldCombineMessages(validationResult.messageBody, session.messageBuffer);
+    
+    // Eğer buffer'da 1 mesaj varsa ve birleştirme gerekmiyorsa, timer'ı bekleyelim
+    if (!isSpecialCommand && bufferStatus.bufferSize === 1 && !shouldCombine) {
+      console.log(`⏰ İlk mesaj, 7 saniye bekleniyor...`);
       return; // Timer bitene kadar bekle
     }
     
-    // Özel komutlar veya timer bitince işle
-    if (isSpecialCommand || bufferStatus.bufferSize > 1) {
+    // Özel komutlar, 2+ mesaj veya birleştirme gerekliyse hemen işle
+    if (isSpecialCommand || bufferStatus.bufferSize > 1 || shouldCombine) {
       // Buffer'ı hemen işle
       const combinedMessage = sessionManager.processMessageBuffer(message.from);
       
@@ -242,5 +283,6 @@ module.exports = {
   sendServiceNotAvailable,
   isImmediateCommand,
   isActiveProcessState,
+  shouldCombineMessages,
   processCombinedMessage
 };

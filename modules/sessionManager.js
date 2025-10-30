@@ -26,7 +26,7 @@ function createUserSession(userId) {
   };
   
   userSessions.set(userId, session);
-  console.log(`Yeni oturum oluşturuldu: ${userId}`);
+  console.log(`🆕 Yeni oturum oluşturuldu: ${userId}`);
   return session;
 }
 
@@ -35,12 +35,15 @@ function updateUserSession(userId, updates) {
   Object.assign(session, updates);
   session.lastActivity = Date.now();
   userSessions.set(userId, session);
+  
+  console.log(`📝 Oturum güncellendi: ${userId}, Durum: ${session.currentState}`);
   return session;
 }
 
 function getUserSession(userId) {
   let session = userSessions.get(userId);
   if (!session) {
+    console.log(`🆕 Oturum bulunamadı, yeni oluşturuluyor: ${userId}`);
     session = createUserSession(userId);
   }
   return session;
@@ -49,6 +52,8 @@ function getUserSession(userId) {
 function addToMessageBuffer(userId, message) {
   const session = getUserSession(userId);
   const now = Date.now();
+  
+  console.log(`📥 Buffer'a mesaj eklendi: "${message}" - Kullanıcı: ${userId}`);
   
   session.messageBuffer.push(message);
   session.lastMessageTime = now;
@@ -72,7 +77,9 @@ function processMessageBuffer(userId) {
   }
   
   session.isProcessingBuffer = true;
+  
   const combinedMessage = session.messageBuffer.join(' ');
+  console.log(`🔄 Buffer işleniyor: "${combinedMessage}" - Kullanıcı: ${userId}`);
   
   session.messageBuffer = [];
   session.messageTimer = null;
@@ -91,6 +98,8 @@ function clearMessageBuffer(userId) {
   
   session.messageBuffer = [];
   session.isProcessingBuffer = false;
+  
+  console.log(`🧹 Buffer temizlendi - Kullanıcı: ${userId}`);
 }
 
 function getBufferStatus(userId) {
@@ -113,9 +122,13 @@ function startHelpTimer(userId, message, services) {
     clearTimeout(session.goodbyeTimer);
   }
 
+  console.log(`⏰ Yardım timer başlatıldı - Kullanıcı: ${userId}`);
+
   const helpTimer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
     if (currentSession && currentSession.waitingForHelp) {
+      console.log(`⏰ Yardım zaman aşımı - Menü gösteriliyor: ${userId}`);
+      
       const menuHandler = require('./menuHandler');
       await menuHandler.showMainMenu(message, services);
       
@@ -145,6 +158,8 @@ async function handleGoodbye(message) {
   
   await message.reply(goodbyeMsg);
   
+  console.log(`👋 Vedalaşma mesajı gönderildi - Kullanıcı: ${message.from}`);
+  
   updateUserSession(message.from, {
     currentState: 'main_menu',
     waitingForHelp: false,
@@ -158,9 +173,11 @@ function stopHelpTimer(userId) {
   if (session) {
     if (session.helpTimer) {
       clearTimeout(session.helpTimer);
+      console.log(`⏰ Yardım timer durduruldu - Kullanıcı: ${userId}`);
     }
     if (session.goodbyeTimer) {
       clearTimeout(session.goodbyeTimer);
+      console.log(`⏰ Vedalaşma timer durduruldu - Kullanıcı: ${userId}`);
     }
     updateUserSession(userId, { 
       waitingForHelp: false, 
@@ -179,6 +196,7 @@ function startMenuTimer(userId, message, services) {
   const timer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
     if (currentSession && currentSession.waitingForResponse) {
+      console.log(`⏰ Menü zaman aşımı - Kullanıcı: ${userId}`);
       const menuHandler = require('./menuHandler');
       await menuHandler.showMainMenu(message, services);
       updateUserSession(userId, { 
@@ -204,6 +222,7 @@ function stopMenuTimer(userId) {
       waitingForResponse: false, 
       menuTimer: null
     });
+    console.log(`⏰ Menü timer durduruldu - Kullanıcı: ${userId}`);
   }
 }
 
@@ -212,15 +231,21 @@ function clearSaleTimer(userId) {
   if (session && session.saleTimer) {
     clearTimeout(session.saleTimer);
     updateUserSession(userId, { saleTimer: null });
+    console.log(`⏰ Satış timer temizlendi - Kullanıcı: ${userId}`);
   }
 }
 
 function clearAllSessions() {
+  const count = userSessions.size;
   userSessions.clear();
+  console.log(`🧹 ${count} oturum temizlendi`);
 }
 
 function listActiveSessions() {
-  console.log(`Aktif oturumlar: ${userSessions.size}`);
+  console.log(`📊 Aktif oturumlar: ${userSessions.size}`);
+  userSessions.forEach((session, userId) => {
+    console.log(`  👤 ${userId}: ${session.currentState}`);
+  });
 }
 
 module.exports = {

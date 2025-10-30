@@ -1,9 +1,11 @@
+[file name]: sessionManager.js
+[file content begin]
 const logger = require('./logger');
 
 // Kullanıcı oturumlarını takip etmek için
 const userSessions = new Map();
 
-// Kullanıcı oturumu oluştur - GÜNCELLENDİ
+// Kullanıcı oturumu oluştur - GÜNCELLENDİ (BUFFER EKLENDİ)
 function createUserSession(userId) {
   const session = {
     userId: userId,
@@ -20,7 +22,13 @@ function createUserSession(userId) {
     currentQuestionIndex: 0,
     collectedAnswers: {},
     serviceFlow: null,
-    menuHistory: []
+    menuHistory: [],
+    
+    // ✅ YENİ EKLENEN BUFFER SİSTEMİ
+    messageBuffer: [],           // Mesaj birleştirme buffer'ı
+    messageTimer: null,          // 35 saniye timer
+    lastMessageTime: Date.now(), // Son mesaj zamanı
+    isProcessingBuffer: false    // Buffer işleniyor mu?
   };
   
   userSessions.set(userId, session);
@@ -47,6 +55,79 @@ function getUserSession(userId) {
     session = createUserSession(userId);
   }
   return session;
+}
+
+// ✅ YENİ FONKSİYON: Mesaj buffer'a ekle
+function addToMessageBuffer(userId, message) {
+  const session = getUserSession(userId);
+  const now = Date.now();
+  
+  console.log(`📥 Buffer'a mesaj eklendi: "${message}" - Kullanıcı: ${userId}`);
+  
+  // Buffer'a mesajı ekle
+  session.messageBuffer.push(message);
+  session.lastMessageTime = now;
+  
+  // Önceki timer'ı temizle
+  if (session.messageTimer) {
+    clearTimeout(session.messageTimer);
+  }
+  
+  // Yeni 35 saniye timer başlat
+  session.messageTimer = setTimeout(() => {
+    processMessageBuffer(userId);
+  }, 35000); // 35 saniye
+  
+  return session.messageBuffer;
+}
+
+// ✅ YENİ FONKSİYON: Buffer'ı işle
+function processMessageBuffer(userId) {
+  const session = getUserSession(userId);
+  
+  if (session.isProcessingBuffer || session.messageBuffer.length === 0) {
+    return null;
+  }
+  
+  session.isProcessingBuffer = true;
+  
+  // Buffer'daki mesajları birleştir
+  const combinedMessage = session.messageBuffer.join(' ');
+  console.log(`🔄 Buffer işleniyor: "${combinedMessage}" - Kullanıcı: ${userId}`);
+  
+  // Buffer'ı temizle
+  session.messageBuffer = [];
+  session.messageTimer = null;
+  session.isProcessingBuffer = false;
+  
+  return combinedMessage;
+}
+
+// ✅ YENİ FONKSİYON: Buffer'ı temizle (acil durumlar için)
+function clearMessageBuffer(userId) {
+  const session = getUserSession(userId);
+  
+  if (session.messageTimer) {
+    clearTimeout(session.messageTimer);
+    session.messageTimer = null;
+  }
+  
+  session.messageBuffer = [];
+  session.isProcessingBuffer = false;
+  
+  console.log(`🧹 Buffer temizlendi - Kullanıcı: ${userId}`);
+}
+
+// ✅ YENİ FONKSİYON: Buffer durumunu kontrol et
+function getBufferStatus(userId) {
+  const session = getUserSession(userId);
+  return {
+    hasBuffer: session.messageBuffer.length > 0,
+    bufferSize: session.messageBuffer.length,
+    isProcessing: session.isProcessingBuffer,
+    lastMessageTime: session.lastMessageTime,
+    bufferContent: session.messageBuffer.join(' ')
+  };
 }
 
 // Yardım timer'ı başlat - GÜNCELLENDİ
@@ -207,5 +288,12 @@ module.exports = {
   handleGoodbye,
   userSessions,
   clearAllSessions,
-  listActiveSessions
+  listActiveSessions,
+  
+  // ✅ YENİ BUFFER FONKSİYONLARI
+  addToMessageBuffer,
+  processMessageBuffer,
+  clearMessageBuffer,
+  getBufferStatus
 };
+[file content end]

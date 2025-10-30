@@ -62,9 +62,10 @@ function addToMessageBuffer(userId, message) {
     clearTimeout(session.messageTimer);
   }
   
+  // ✅ DEĞİŞTİ: 10 saniye → 7 saniye (diğer timer'lar etkilenmez)
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
-  }, 10000);
+  }, 7000); // 7 saniye
   
   return session.messageBuffer;
 }
@@ -124,6 +125,7 @@ function startHelpTimer(userId, message, services) {
 
   console.log(`⏰ Yardım timer başlatıldı - Kullanıcı: ${userId}`);
 
+  // ✅ DEĞİŞMEDİ: 3 dakika (180000 ms)
   const helpTimer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
     if (currentSession && currentSession.waitingForHelp) {
@@ -132,6 +134,7 @@ function startHelpTimer(userId, message, services) {
       const menuHandler = require('./menuHandler');
       await menuHandler.showMainMenu(message, services);
       
+      // ✅ DEĞİŞMEDİ: 3 dakika (180000 ms)
       const goodbyeTimer = setTimeout(async () => {
         await handleGoodbye(message);
       }, 3 * 60 * 1000);
@@ -193,6 +196,7 @@ function startMenuTimer(userId, message, services) {
     clearTimeout(session.menuTimer);
   }
 
+  // ✅ DEĞİŞMEDİ: 60 saniye (60000 ms)
   const timer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
     if (currentSession && currentSession.waitingForResponse) {

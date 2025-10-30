@@ -1,4 +1,3 @@
-[file name]: messageHandler.js
 [file content begin]
 // modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ EKLENDİ
 const logger = require('./logger');
@@ -211,4 +210,3 @@ module.exports = {
   isImmediateCommand,
   processCombinedMessage
 };
-[file content end]

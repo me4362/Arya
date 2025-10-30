@@ -1,44 +1,6 @@
 {
-  "service_name": "Yeşil Sigorta",
-  "service_category": "Sigorta Hizmetleri",
-  "customer_trigger_message": "Merhaba Yeşil Sigorta için yazmıştım",
-  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yeşil Sigorta ürünü için size yardımcı olacağım. Sizden sırasıyla şu bilgileri isteyeceğim.",
-  "questions": [
-    {
-      "question": "Aracınızın ruhsat sahibinin adı ve soyadı",
-      "field_name": "isim_soyisim",
-      "field_type": "text"
-    },
-    {
-      "question": "Aracın Plakası",
-      "field_name": "plaka",
-      "field_type": "text"
-    },
-    {
-      "question": "Aracın ruhsat üzerinde belirtilen cinsi?",
-      "field_name": "arac_cinsi",
-      "field_type": "text"
-    },
-    {
-      "question": "Ruhsat üzerindeki adres",
-      "field_name": "adres",
-      "field_type": "text"
-    },
-    {
-      "question": "Ruhsat üzerinde yazdığı şekilde aracın rengi",
-      "field_name": "renk",
-      "field_type": "text"
-    },
-    {
-      "question": "Aracın Markası",
-      "field_name": "marka",
-      "field_type": "text"
-    },
-    {
-      "question": "Aracın model ismi",
-      "field_name": "model",
-      "field_type": "text"
-    }
-  ],
-  "completion_message": "Tüm bilgilerinizi sisteme işledim. En kısa süre içerisinde size en uygun Yeşil Sigorta fiyatlarını bildireceğim. Beklediğiniz için teşekkürler."
+  "servis_adi": "Yeşil Sigorta",
+  "bot_greeting": "Merhaba ben müşteri destek asistanı ARYA; Yeşil Sigorta hizmetimiz için size yardımcı olacağım. Ancak şu anda bu hizmete Aralık ayına kadar ara vermiş bulunmaktayız. Anlayışınız için teşekkür ederiz.",
+  "completion_message": "Yeşil Sigorta hizmetimiz Aralık ayına kadar geçici olarak durdurulmuştur.",
+  "questions": []
 }

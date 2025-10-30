@@ -7,10 +7,6 @@ const validation = require('./messageHandler/validation');
 const errorHandler = require('./messageHandler/errorHandler');
 const { sendMessageWithoutQuote } = require('./utils/globalClient');
 
-// ❌ HUGGING FACE KALDIRILDI
-// const HuggingFaceAsistan = require('../huggingface-asistan');
-// const hfAsistan = new HuggingFaceAsistan();
-
 // Global servis durumu değişkeni - basit çözüm
 let serviceFound = false;
 
@@ -66,9 +62,6 @@ async function sendServiceNotAvailable(message, serviceRequest = '') {
   console.log(`🚫 Kurumsal red mesajı gönderildi: "${serviceRequest.substring(0, 50)}..."`);
 }
 
-// ❌ HUGGING FACE FONKSİYONU KALDIRILDI
-// async function generateHuggingFaceResponse(message) { ... }
-
 // Servis durumunu kontrol et (basit fonksiyon)
 function checkServiceFound() {
   return serviceFound;
@@ -79,11 +72,27 @@ function isImmediateCommand(message) {
   const immediateCommands = [
     'menü', 'menu', 'yardım', 'yardim', 'help', 
     'çıkış', 'çıkıs', 'exit', 'geri', 'back',
-    'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol'
+    'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', // Sayılar
+    'evet', 'hayır', 'tamam', 'ok' // Hızlı cevaplar
   ];
   
   const cleanMessage = message.toLowerCase().trim();
   return immediateCommands.some(cmd => cleanMessage.includes(cmd));
+}
+
+// ✅ YENİ FONKSİYON: Aktif işlem durumunu kontrol et
+function isActiveProcessState(state) {
+  const activeStates = [
+    'waiting_for_service',
+    'waiting_for_response', 
+    'service_flow',
+    'question_flow',
+    'collecting_info',
+    'processing_order'
+  ];
+  
+  return activeStates.some(activeState => state.includes(activeState));
 }
 
 // ✅ YENİ FONKSİYON: Birleştirilmiş mesajı işle
@@ -123,7 +132,7 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   }
 }
 
-// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - BUFFER SİSTEMİ EKLENDİ
+// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - BUFFER BYPASS EKLENDİ
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -154,6 +163,33 @@ async function handleMessage(message) {
       return;
     }
     
+    // ✅ YENİ: AKTİF İŞLEM BYPASS - Eğer kullanıcı aktif işlem yapıyorsa buffer'ı atla
+    if (isActiveProcessState(session.currentState)) {
+      console.log(`⚡ Aktif işlem tespit edildi - Buffer bypass: ${session.currentState}`);
+      
+      // Timer'ları durdur
+      sessionManager.stopHelpTimer(message.from);
+      sessionManager.stopMenuTimer(message.from);
+      
+      // Mesajı hemen işle
+      await processCombinedMessage(message, validationResult.messageBody, contactInfo);
+      return;
+    }
+    
+    // ✅ YENİ: Özel komut bypass - Hemen işle
+    const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
+    if (isSpecialCommand) {
+      console.log(`⚡ Özel komut tespit edildi - Buffer bypass: "${validationResult.messageBody}"`);
+      
+      // Timer'ları durdur
+      sessionManager.stopHelpTimer(message.from);
+      sessionManager.stopMenuTimer(message.from);
+      
+      // Mesajı hemen işle
+      await processCombinedMessage(message, validationResult.messageBody, contactInfo);
+      return;
+    }
+    
     // ✅ YENİ: Buffer'a mesaj ekle
     sessionManager.addToMessageBuffer(message.from, validationResult.messageBody);
     
@@ -162,10 +198,8 @@ async function handleMessage(message) {
     console.log(`📥 Buffer'a eklendi: ${bufferStatus.bufferSize} mesaj -> "${bufferStatus.bufferContent}"`);
     
     // Eğer buffer'da 1'den fazla mesaj varsa veya bu özel bir komut değilse, timer'ı bekleyelim
-    const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
-    
     if (!isSpecialCommand && bufferStatus.bufferSize === 1) {
-      console.log(`⏰ İlk mesaj, 35 saniye bekleniyor...`);
+      console.log(`⏰ İlk mesaj, 10 saniye bekleniyor...`);
       return; // Timer bitene kadar bekle
     }
     
@@ -207,5 +241,6 @@ module.exports = {
   // ✅ YENİ FONKSİYONLAR
   sendServiceNotAvailable,
   isImmediateCommand,
+  isActiveProcessState,
   processCombinedMessage
 };

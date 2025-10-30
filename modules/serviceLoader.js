@@ -2,14 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
 
-// JSON verilerini yükleme fonksiyonu - GÜNCELLENDİ
+// JSON verilerini yükleme fonksiyonu - OPTİMİZE EDİLDİ
 function loadJSON(filePath) {
   try {
     // Önce verilen yolu dene
     if (fs.existsSync(filePath)) {
       const data = fs.readFileSync(filePath, 'utf8');
       const parsedData = JSON.parse(data);
-      console.log(`✅ JSON yüklendi: ${filePath}`);
       return parsedData;
     }
     
@@ -18,7 +17,6 @@ function loadJSON(filePath) {
     if (fs.existsSync(genelDiyalogPath)) {
       const data = fs.readFileSync(genelDiyalogPath, 'utf8');
       const parsedData = JSON.parse(data);
-      console.log(`✅ JSON yüklendi (genel_diyalog): ${genelDiyalogPath}`);
       return parsedData;
     }
 
@@ -27,7 +25,6 @@ function loadJSON(filePath) {
     if (fs.existsSync(rootPath)) {
       const data = fs.readFileSync(rootPath, 'utf8');
       const parsedData = JSON.parse(data);
-      console.log(`✅ JSON yüklendi (root): ${rootPath}`);
       return parsedData;
     }
     
@@ -35,33 +32,30 @@ function loadJSON(filePath) {
     return null;
   } catch (error) {
     logger.error(`JSON yükleme hatası (${filePath}): ${error.message}`);
-    console.log(`❌ JSON parse hatası: ${error.message}`);
     return null;
   }
 }
 
-// Tüm servisleri yükle - GÜNCELLENDİ
+// Tüm servisleri yükle - OPTİMİZE EDİLDİ (KISALTILMIŞ LOG)
 function loadAllServices() {
   const services = {};
+  let totalFileCount = 0;
   
-  console.log('📁 Tüm servisler yükleniyor...');
+  console.log('📁 Servisler yükleniyor...');
   
-  // Ana kategorileri yükle
+  // Ana kategorileri yükle - KISALTILMIŞ
   const anaKategoriDosyalari = fs.readdirSync('./ana_kategoriler').filter(file => file.endsWith('.json'));
-  console.log(`📂 Ana kategoriler bulundu: ${anaKategoriDosyalari.length}`);
-  
   anaKategoriDosyalari.forEach(file => {
     const key = file.replace('.json', '');
     services[key] = loadJSON(path.join('./ana_kategoriler', file));
   });
+  totalFileCount += anaKategoriDosyalari.length;
   
-  // Data klasöründeki servisleri yükle
+  // Data klasöründeki servisleri yükle - KISALTILMIŞ
   if (fs.existsSync('./data')) {
     const dataKlasorleri = fs.readdirSync('./data').filter(name => 
       fs.statSync(path.join('./data', name)).isDirectory()
     );
-    
-    console.log(`📂 Data klasörleri: ${dataKlasorleri.length}`);
     
     dataKlasorleri.forEach(klasor => {
       const klasorYolu = path.join('./data', klasor);
@@ -72,38 +66,39 @@ function loadAllServices() {
         const servisAdi = file.replace('.json', '');
         services[klasor][servisAdi] = loadJSON(path.join(klasorYolu, file));
       });
+      totalFileCount += servisDosyalari.length;
     });
   }
   
-  // Fiyat listelerini yükle
+  // Fiyat listelerini yükle - KISALTILMIŞ
   const fiyatKlasoru = './fiyat_listeleri';
   if (fs.existsSync(fiyatKlasoru)) {
     services['fiyat_listeleri'] = {};
     const fiyatDosyalari = fs.readdirSync(fiyatKlasoru).filter(file => file.endsWith('.json'));
     
-    console.log(`💰 Fiyat dosyaları: ${fiyatDosyalari.length}`);
-    
     fiyatDosyalari.forEach(file => {
       const fiyatAdi = file.replace('.json', '');
       services['fiyat_listeleri'][fiyatAdi] = loadJSON(path.join(fiyatKlasoru, file));
     });
+    totalFileCount += fiyatDosyalari.length;
   }
   
-  // Genel diyalog dosyalarını yükle
+  // Genel diyalog dosyalarını yükle - KISALTILMIŞ
   const genelDiyalogKlasoru = './genel_diyalog';
   if (fs.existsSync(genelDiyalogKlasoru)) {
     services['genel_diyalog'] = {};
     const diyalogDosyalari = fs.readdirSync(genelDiyalogKlasoru).filter(file => file.endsWith('.json'));
     
-    console.log(`💬 Diyalog dosyaları: ${diyalogDosyalari.length}`);
-    
     diyalogDosyalari.forEach(file => {
       const diyalogAdi = file.replace('.json', '');
       services['genel_diyalog'][diyalogAdi] = loadJSON(path.join(genelDiyalogKlasoru, file));
     });
+    totalFileCount += diyalogDosyalari.length;
   }
   
-  console.log(`🎉 Toplam ${Object.keys(services).length} kategori yüklendi`);
+  // TEK SATIR ÖZET
+  console.log(`✅ ${totalFileCount} servis dosyası yüklendi (${Object.keys(services).length} kategori)`);
+  
   return services;
 }
 

@@ -1,4 +1,4 @@
-// modules/messageHandler/serviceMatcher.js - TAMAMEN GÜNCELLENDİ
+// modules/messageHandler/serviceMatcher.js - AKILLI RED SİSTEMİ EKLENDİ
 const logger = require('../logger');
 const serviceLoader = require('../serviceLoader');
 
@@ -6,6 +6,20 @@ function findMatchingService(message, services) {
   const cleanMessage = message.toLowerCase().replace(/[.,!?]/g, '').trim();
   
   console.log(`🔍 Servis aranıyor: "${cleanMessage}"`);
+
+  // ✅ YENİ: AKILLI RED SİSTEMİ - ÖNCE TÜM SERVİS KELİMELERİNİ KONTROL ET
+  const allServiceKeywords = getAllServiceKeywords(services);
+  
+  // ✅ MESAJDA SERVİS KELİMESİ VAR MI KONTROL ET (3 karakterden uzun mesajlar için)
+  const hasServiceKeyword = allServiceKeywords.some(keyword => 
+    cleanMessage.includes(keyword)
+  );
+  
+  // ✅ EĞER HİÇ SERVİS KELİMESİ YOKSA VE MESAJ YETERLİ UZUNLUKTAYSA, OTOMATİK RED
+  if (!hasServiceKeyword && cleanMessage.length > 3 && !isGeneralQuestion(cleanMessage)) {
+    console.log(`🚫 Servis kelimesi bulunamadı: "${cleanMessage}"`);
+    return createServiceNotAvailableResponse(cleanMessage);
+  }
 
   // ÖNCE: KİMLİK VE TANITIM SORULARI
   const kimlikSorulari = {
@@ -117,8 +131,10 @@ function findMatchingService(message, services) {
   // TAM EŞLEŞMELER - TÜM SERVİSLER
   const exactMatches = {
     // === SİGORTA HİZMETLERİ ===
-    'yeşil sigorta': 'yesil_sigorta',
-    'yesil sigorta': 'yesil_sigorta',
+    // DEĞİŞİKLİK: Tüm yeşil sigorta istekleri fiyat listesine yönlensin
+    'yeşil sigorta': 'yesil_sigorta_fiyatlari',  // yesil_sigorta → yesil_sigorta_fiyatlari
+    'yesil sigorta': 'yesil_sigorta_fiyatlari',  // yesil_sigorta → yesil_sigorta_fiyatlari
+    
     'trafik sigortası': 'trafik_sigortasi',
     'trafik sigortasi': 'trafik_sigortasi',
     'kasko sigortası': 'kasko',
@@ -336,6 +352,100 @@ function findMatchingService(message, services) {
   return null;
 }
 
+// ✅ YENİ FONKSİYON: Tüm servis keyword'lerini otomatik topla
+function getAllServiceKeywords(services) {
+  const keywords = new Set();
+  
+  // Exact matches'den keyword'leri topla
+  const exactMatches = [
+    'yeşil sigorta', 'yesil sigorta', 'trafik sigortası', 'trafik sigortasi',
+    'kasko sigortası', 'kasko sigortasi', 'koltuk sigortası', 'koltuk sigortasi',
+    'dask sigortası', 'dask sigortasi', 'konut sigortası', 'konut sigortasi',
+    'işyeri sigortası', 'isyeri sigortasi', 'seyahat sağlık sigortası', 'seyahat saglik sigortasi',
+    'tamamlayıcı sağlık sigortası', 'tamamlayici saglik sigortasi', 'özel sağlık sigortası', 'ozel saglik sigortasi',
+    'özel yazılım geliştirme', 'ozel yazilim geliştirme', 'yazılım geliştirme', 'yazilim geliştirme',
+    'mobil uygulama geliştirme', 'mobil uygulama', 'uygulama geliştirme',
+    'genel ağ güvenliği', 'genel ag guvenligi', 'kullanıcı güvenliği', 'kullanici guvenligi',
+    'veri güvenliği', 'veri guvenligi', 'uygulama güvenliği', 'uygulama guvenligi',
+    'kimlik ve erişim yönetimi', 'kimlik erisim yonetimi', 'güvenlik yonetimi', 'guvenlik yonetimi',
+    'penetrasyon test talebi', 'penetrasyon test', 'siber güvenlik eğitimi', 'siber guvenlik egitimi',
+    'yurtiçi yük nakli', 'yurtici yuk nakli', 'yurtiçi nakliye', 'yurtdışı yük nakli', 'yurtdisi yuk nakli',
+    'yurtdışı nakliye', 'depo antrepo hizmeti', 'depo hizmeti', 'antrepo hizmeti',
+    'yurtdışı müşteri araştırma', 'yurtdisi musteri arastirma', 'yurtiçi tedarikçi araştırma', 'yurtici tedarikci arastirma',
+    'gümrük operasyon hizmetleri', 'gumruk operasyon hizmetleri', 'gümrük hizmetleri', 'yurtiçi ürün araştırma',
+    'yurtici urun arastirma', 'yurtdışı pazar araştırma', 'yurtdisi pazar arastirma',
+    'iç denetim hizmeti', 'ic denetim hizmeti', 'tedarikçi müşteri mali denetim', 'tedarikci musteri mali denetim',
+    'tedarikçi kalite denetim', 'tedarikci kalite denetim', 'tedarikçi üretim denetleme', 'tedarikci uretim denetleme',
+    'firma temsil hizmeti', 'satılık gayrimenkul', 'satilik gayrimenkul', 'kiralık gayrimenkul', 'kiralik gayrimenkul',
+    'yurtdışı gayrimenkul yatırım', 'yurtdisi gayrimenkul yatirim', 'inşaat taahhüt hizmeti', 'insaat taahhut hizmeti',
+    'müşteri seçimi', 'musteri secimi', 'müşteri edinme', 'musteri edinme', 'müşteri koruma', 'musteri koruma',
+    'müşteri derinleştirme', 'musteri derinlestirme', 'erkek giyim', 'kadın giyim', 'kadin giyim',
+    'ev tekstil ürünleri', 'ev tekstil urunleri', 'parfüm', 'parfum', 'deodorant', 'kişisel bakım', 'kisisel bakim',
+    'medikal kozmetik', 'yurtiçi özel gezi talebi', 'yurtici ozel gezi talebi', 'yurtdışı özel gezi talebi',
+    'yurtdisi ozel gezi talebi', 'personel servis talebi', 'güneş verimlilik hesabı', 'gunes verimlilik hesabi',
+    'ges üretim hesaplama', 'ges uretim hesaplama', 'ges kurulum hesaplama', 'insan kaynakları danışmanlığı',
+    'stratejik planlama danışmanlığı', 'finansal danışmanlık', 'operasyonel iyileştirme',
+    'kurumsal iletişim danışmanlığı', 'yasal danışmanlık', 'teknoloji danışmanlığı', 'kurumsal eğitim hizmetleri'
+  ];
+
+  // Exact matches'den kelimeleri ayır ve ekle
+  exactMatches.forEach(phrase => {
+    phrase.split(' ').forEach(word => {
+      if (word.length > 2) { // 2 harften uzun kelimeleri al
+        keywords.add(word.toLowerCase());
+      }
+    });
+  });
+
+  // Anahtar kelimeleri ekle
+  const keyWords = ['sigorta', 'yazılım', 'yazilim', 'siber', 'güvenlik', 'lojistik', 'nakliye', 
+                   'ithalat', 'ihracat', 'denetim', 'denetleme', 'emlak', 'inşaat', 'crm', 
+                   'tekstil', 'kozmetik', 'tur', 'turizm', 'güneş', 'enerji', 'kurumsal', 'danışmanlık'];
+
+  keyWords.forEach(keyword => {
+    if (keyword.length > 2) {
+      keywords.add(keyword.toLowerCase());
+    }
+  });
+
+  // Fiyat sorgularından kelimeleri ekle
+  const priceWords = ['fiyat', 'fiyatı', 'fiyati', 'ne kadar', 'ücreti', 'ucreti', 'fiyatları', 'fiyatlari'];
+  priceWords.forEach(word => keywords.add(word));
+
+  console.log(`📊 Servis keyword'leri hazır: ${Array.from(keywords).length} kelime`);
+  return Array.from(keywords);
+}
+
+// ✅ YENİ FONKSİYON: Genel soru kontrolü (selamlama, teşekkür vb.)
+function isGeneralQuestion(message) {
+  const generalPatterns = [
+    'merhaba', 'selam', 'hello', 'hi', 'günaydın', 'iyi günler', 
+    'teşekkür', 'tesekkur', 'sağol', 'sagol', 'thanks', 'thank you',
+    'evet', 'hayır', 'tamam', 'ok', 'anladım', 'peki'
+  ];
+  
+  return generalPatterns.some(pattern => message.includes(pattern));
+}
+
+// ✅ YENİ FONKSİYON: Hizmet dışı konular için özel response
+function createServiceNotAvailableResponse(message) {
+  console.log(`🚫 Hizmet dışı konu tespit edildi: "${message}"`);
+  
+  // Mesajdaki ana kelimeyi çıkar (ilk 2-3 kelime)
+  const mainWords = message.split(' ').slice(0, 3).join(' ');
+  
+  return {
+    type: 'service_not_available',
+    data: { 
+      originalMessage: message,
+      detectedKeyword: mainWords,
+      message: `"${mainWords}" konusunda hizmet verememekteyiz`
+    },
+    category: 'hizmet_disı',
+    name: 'service_not_available'
+  };
+}
+
 // Diyalog cevabı oluşturma fonksiyonu - GÜNCELLENDİ
 function createDiyalogCevabi(soru, dosyaAdi, tip) {
   try {
@@ -391,49 +501,4 @@ function createDiyalogCevabi(soru, dosyaAdi, tip) {
     }
 
     if (cevap) {
-      console.log(`✅ Diyalog cevabı oluşturuldu: ${tip}`);
-      return {
-        type: 'diyalog',
-        data: { cevap: cevap },
-        category: 'genel_diyalog',
-        name: dosyaAdi
-      };
-    }
-    
-  } catch (error) {
-    console.log(`❌ Diyalog cevabı oluşturma hatası: ${error.message}`);
-  }
-  
-  return createFallbackCevap(tip);
-}
-
-// Fallback cevap oluşturma
-function createFallbackCevap(tip) {
-  let cevap = '';
-  
-  switch (tip) {
-    case 'kimlik':
-      cevap = 'Ben ARYA, PlanB Global Network Ltd Şti için hizmet veren yapay zeka asistanıyım. Size nasıl yardımcı olabilirim?';
-      break;
-    case 'iletisim':
-      cevap = 'İnsan desteğine ihtiyaç duyduğunuzda sizi ilgili departmanlara yönlendirebilirim. Hangi konuda yardıma ihtiyacınız var?';
-      break;
-    case 'firma':
-      cevap = `🏢 *PlanB Global Network Ltd Şti*\n\n` +
-             `📋 *Hizmet Alanları:*\n` +
-             `1. Sigorta Hizmetleri\n2. Yazılım Talepleri\n3. Siber Güvenlik\n4. Lojistik Hizmetleri\n5. İthalat İhracat\n6. Profesyonel Denetleme\n7. İnşaat Emlak\n8. CRM Hizmetleri\n9. Tekstil Ürünleri\n10. Kozmetik Ürünleri\n11. Tur Organizasyon\n12. Güneş Enerjisi Sistemleri\n13. Kurumsal Hizmetler\n\n` +
-             `İnsan desteğine ihtiyaç duyduğunuzda sizi ilgili departmanlara yönlendirebilirim.`;
-      break;
-  }
-  
-  return {
-    type: 'diyalog',
-    data: { cevap: cevap },
-    category: 'genel_diyalog',
-    name: 'fallback'
-  };
-}
-
-module.exports = {
-  findMatchingService
-};
+      console.log(`✅ Diyalog cevabı oluşturuldu:

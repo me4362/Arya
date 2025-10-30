@@ -1,4 +1,3 @@
-[file content begin]
 // modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ EKLENDİ
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');

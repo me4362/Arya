@@ -1,4 +1,4 @@
-// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ EKLENDİ
+// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + YARDIM TIMER EKLENDİ
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');
 const sessionRouter = require('./messageHandler/sessionRouter');
@@ -170,7 +170,21 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   }
 }
 
-// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - AKILLI BUFFER EKLENDİ
+// ✅ YENİ FONKSİYON: Yardım timer'ını başlat
+function startHelpTimer(message) {
+  try {
+    const sessionManager = require('./sessionManager');
+    const serviceLoader = require('./serviceLoader');
+    const services = serviceLoader.loadAllServices();
+    
+    sessionManager.startHelpTimer(message.from, message, services);
+    console.log(`⏰ Yardım timer başlatıldı - Kullanıcı: ${message.from}`);
+  } catch (error) {
+    console.log(`❌ Yardım timer başlatma hatası: ${error.message}`);
+  }
+}
+
+// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - AKILLI BUFFER + YARDIM TIMER EKLENDİ
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -194,6 +208,9 @@ async function handleMessage(message) {
     
     console.log(`🔍 Oturum durumu: ${session.currentState}, Mesaj: "${validationResult.messageBody}"`);
     console.log(`📊 Buffer durumu: ${session.messageBuffer.length} mesaj, İşleniyor: ${session.isProcessingBuffer}`);
+    
+    // ✅ YENİ: HER MESAJ İÇİN YARDIM TIMER'INI BAŞLAT
+    startHelpTimer(message);
     
     // ✅ YENİ: Buffer kontrolü - eğer buffer işleniyorsa bekle
     if (session.isProcessingBuffer) {
@@ -284,5 +301,6 @@ module.exports = {
   isImmediateCommand,
   isActiveProcessState,
   shouldCombineMessages,
-  processCombinedMessage
+  processCombinedMessage,
+  startHelpTimer
 };

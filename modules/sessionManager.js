@@ -62,10 +62,9 @@ function addToMessageBuffer(userId, message) {
     clearTimeout(session.messageTimer);
   }
   
-  // ✅ DEĞİŞTİ: 10 saniye → 7 saniye (diğer timer'lar etkilenmez)
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
-  }, 7000); // 7 saniye
+  }, 7000);
   
   return session.messageBuffer;
 }
@@ -114,37 +113,38 @@ function getBufferStatus(userId) {
   };
 }
 
+// GÜNCELLENMİŞ startHelpTimer FONKSİYONU
 function startHelpTimer(userId, message, services) {
   const session = getUserSession(userId);
-  if (session && session.helpTimer) {
+  
+  // Önceki timer'ları temizle
+  if (session.helpTimer) {
     clearTimeout(session.helpTimer);
   }
-  if (session && session.goodbyeTimer) {
+  if (session.goodbyeTimer) {
     clearTimeout(session.goodbyeTimer);
   }
 
   console.log(`⏰ Yardım timer başlatıldı - Kullanıcı: ${userId}`);
 
-  // ✅ DEĞİŞMEDİ: 3 dakika (180000 ms)
+  // 1. Timer: 3 dakika sonra menüyü göster
   const helpTimer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
-    if (currentSession && currentSession.waitingForHelp) {
-      console.log(`⏰ Yardım zaman aşımı - Menü gösteriliyor: ${userId}`);
-      
-      const menuHandler = require('./menuHandler');
-      await menuHandler.showMainMenu(message, services);
-      
-      // ✅ DEĞİŞMEDİ: 3 dakika (180000 ms)
-      const goodbyeTimer = setTimeout(async () => {
-        await handleGoodbye(message);
-      }, 3 * 60 * 1000);
-      
-      updateUserSession(userId, { 
-        waitingForHelp: false, 
-        helpTimer: null,
-        goodbyeTimer: goodbyeTimer
-      });
-    }
+    console.log(`⏰ Yardım zaman aşımı - Menü gösteriliyor: ${userId}`);
+    
+    const menuHandler = require('./menuHandler');
+    await menuHandler.showMainMenu(message, services);
+    
+    // 2. Timer: 3 dakika sonra vedalaşma (toplam 6 dakika)
+    const goodbyeTimer = setTimeout(async () => {
+      console.log(`⏰ Vedalaşma zaman aşımı - Kullanıcı: ${userId}`);
+      await handleGoodbye(message);
+    }, 3 * 60 * 1000);
+    
+    updateUserSession(userId, { 
+      goodbyeTimer: goodbyeTimer
+    });
+    
   }, 3 * 60 * 1000);
 
   updateUserSession(userId, { 
@@ -153,22 +153,74 @@ function startHelpTimer(userId, message, services) {
   });
 }
 
+// GÜNCELLENMİŞ handleGoodbye FONKSİYONU
 async function handleGoodbye(message) {
-  const serviceLoader = require('./serviceLoader');
-  const greetings = serviceLoader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
-  const goodbyeMsg = greetings?.vedalasma?.hoscakal?.[0] || 
-                    'Hoşça kalın! PlanB Global Network Ltd Şti adına iyi günler dilerim.';
-  
-  await message.reply(goodbyeMsg);
-  
-  console.log(`👋 Vedalaşma mesajı gönderildi - Kullanıcı: ${message.from}`);
-  
-  updateUserSession(message.from, {
-    currentState: 'main_menu',
-    waitingForHelp: false,
-    helpTimer: null,
-    goodbyeTimer: null
-  });
+  try {
+    const serviceLoader = require('./serviceLoader');
+    const greetings = serviceLoader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
+    
+    // Türkiye saat dilimine göre saat bilgisi
+    const now = new Date();
+    const turkiyeSaati = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Istanbul"}));
+    const saat = turkiyeSaati.getHours();
+    
+    let goodbyeMsg = '';
+    
+    // JSON'daki vedalaşma mesajlarını kullan
+    if (greetings?.vedalasma?.hoscakal) {
+      // Rastgele bir vedalaşma mesajı seç
+      const randomIndex = Math.floor(Math.random() * greetings.vedalasma.hoscakal.length);
+      goodbyeMsg = greetings.vedalasma.hoscakal[randomIndex];
+      
+      // Saate göre emoji ve kişiselleştirme ekle
+      let timeEmoji = '👋';
+      let timeContext = '';
+      
+      if (saat >= 6 && saat < 12) {
+        // SABAH
+        timeEmoji = '☀️';
+        timeContext = ' Güneşli ve verimli bir gün geçirmenizi dileriz!';
+      } else if (saat >= 12 && saat < 18) {
+        // ÖĞLEN
+        timeEmoji = '🌞'; 
+        timeContext = ' Verimli bir gün geçirmenizi dileriz!';
+      } else if (saat >= 18 && saat < 23) {
+        // AKŞAM
+        timeEmoji = '🌙';
+        timeContext = ' Huzurlu bir akşam geçirmenizi dileriz!';
+      } else {
+        // GECE
+        timeEmoji = '🌙';
+        timeContext = ' Huzurlu bir gece geçirmenizi dileriz!';
+      }
+      
+      // Mesajı kişiselleştir
+      goodbyeMsg = goodbyeMsg.replace('👋', timeEmoji);
+      if (!goodbyeMsg.includes('PlanB Global Network Ltd Şti')) {
+        goodbyeMsg += timeContext;
+      }
+    } else {
+      // Fallback mesaj
+      goodbyeMsg = '👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!';
+    }
+    
+    await message.reply(goodbyeMsg);
+    
+    console.log(`👋 Vedalaşma mesajı gönderildi (Saat: ${saat}:00) - Kullanıcı: ${message.from}`);
+    
+    // Oturumu temizle
+    updateUserSession(message.from, {
+      currentState: 'main_menu',
+      waitingForHelp: false,
+      helpTimer: null,
+      goodbyeTimer: null
+    });
+    
+  } catch (error) {
+    console.log(`❌ Vedalaşma mesajı hatası: ${error.message}`);
+    // Fallback mesaj
+    await message.reply('👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
+  }
 }
 
 function stopHelpTimer(userId) {
@@ -196,7 +248,6 @@ function startMenuTimer(userId, message, services) {
     clearTimeout(session.menuTimer);
   }
 
-  // ✅ DEĞİŞMEDİ: 60 saniye (60000 ms)
   const timer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
     if (currentSession && currentSession.waitingForResponse) {

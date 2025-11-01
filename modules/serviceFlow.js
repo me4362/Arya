@@ -1,4 +1,4 @@
-// modules/serviceFlow.js - GÜNCELLENDİ (YEŞİL SİGORTA SATIŞ ATLAMA EKLENDİ + ÇİFT MENÜ DÜZELTMESİ)
+// modules/serviceFlow.js - GÜNCELLENDİ (YEŞİL SİGORTA SATIŞ ATLAMA EKLENDİ)
 const fs = require('fs');
 const path = require('path');
 const logger = require('./logger');
@@ -153,7 +153,7 @@ async function handleAnswer(message, answer, session) {
   return true;
 }
 
-// Servis akışını tamamla - GÜNCELLENDİ (ÇİFT MENÜ DÜZELTMESİ)
+// Servis akışını tamamla - GÜNCELLENDİ
 async function completeServiceFlow(message, session) {
   if (!session.currentService || !session.currentService.data) {
     console.log('❌ Servis verisi bulunamadı');
@@ -196,10 +196,11 @@ async function completeServiceFlow(message, session) {
     serviceFlow: null
   });
   
-  // ✅ DEĞİŞTİ: Menü göstermek yerine sadece timer başlat
+  const serviceLoader = require('./serviceLoader');
+  const menuHandler = require('./menuHandler');
+  
   setTimeout(async () => {
-    console.log(`⏰ Servis tamamlandı - Menü timer başlatılıyor: ${message.from}`);
-    sessionManager.startMenuGoodbyeTimer(message.from, message);
+    await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
   }, 2000);
 }
 

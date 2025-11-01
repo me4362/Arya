@@ -29,7 +29,7 @@ async function sendReply(message, text) {
   }
 }
 
-// ✅ GÜNCELLENDİ: Akıllı Buffer State Yönetimi - KRİTİK HATA DÜZELTİLDİ
+// ✅ GÜNCELLENDİ: Akıllı Buffer State Yönetimi - RESET MANTIĞI DÜZELTİLDİ
 function getUserBufferState(userId) {
   if (!userBufferStates.has(userId)) {
     userBufferStates.set(userId, {
@@ -38,13 +38,14 @@ function getUserBufferState(userId) {
       totalWaitTime: 0,
       isWaitingForCompletion: false,
       lastMessageLength: 0,
-      lastUpdateTime: Date.now() // ✅ YENİ: Son güncelleme zamanı eklendi
+      lastUpdateTime: Date.now(),
+      conversationStarted: false // ✅ YENİ: Konuşma başladı mı?
     });
   }
   return userBufferStates.get(userId);
 }
 
-// ✅ GÜNCELLENDİ: Akıllı Bekleme Süresi Hesaplama - ZAMAN TESPİTİ DÜZELTİLDİ
+// ✅ GÜNCELLENDİ: Akıllı Bekleme Süresi Hesaplama - ZAMAN EŞİKLERİ ARTIRILDI
 function calculateSmartWaitTime(message, userId) {
   const bufferState = getUserBufferState(userId);
   const now = Date.now();
@@ -56,32 +57,32 @@ function calculateSmartWaitTime(message, userId) {
   console.log(`⏱️  AKILLI SÜRE HESAPLAMA: Mesaj=${messageLength}karakter, SonGüncelleme=${timeSinceLastUpdate}ms önce, Sayı=${bufferState.messageCount}`);
   
   // 1. KADEME - Hızlı devam (kısa mesajlar, hızlı yazım)
-  if (timeSinceLastUpdate < 5000 && messageLength < 25) {
-    // Kısa mesajlar hızlı geliyorsa 8 saniye bekle
-    return 8000;
+  if (timeSinceLastUpdate < 8000 && messageLength < 25) { // ✅ 5sn → 8sn
+    // Kısa mesajlar hızlı geliyorsa 12 saniye bekle
+    return 12000;
   }
   
   // 2. KADEME - Uzun mesaj tespiti
   if (messageLength > 30 || bufferState.lastMessageLength > 30) {
-    // Uzun mesaj yazılıyorsa 20 saniye bekle
-    console.log(`📝 UZUN MESAJ TESPİTİ: 20sn bekle`);
-    return 20000;
+    // Uzun mesaj yazılıyorsa 25 saniye bekle
+    console.log(`📝 UZUN MESAJ TESPİTİ: 25sn bekle`);
+    return 25000;
   }
   
   // 3. KADEME - Maksimum bekleme kontrolü
   const remainingTime = 45000 - bufferState.totalWaitTime; // 45 saniye maksimum
-  if (remainingTime < 10000) {
+  if (remainingTime < 15000) { // ✅ 10sn → 15sn
     // Maksimum süreye yaklaşıldı, kısa bekle
     console.log(`⏰ MAKSİMUM SÜRE YAKLAŞTI: ${remainingTime}ms kaldı`);
-    return Math.max(5000, remainingTime);
+    return Math.max(8000, remainingTime); // ✅ 5sn → 8sn
   }
   
   // 4. Varsayılan - Mesaj sayısına göre kademeli bekleme
-  const baseTime = bufferState.messageCount === 0 ? 15000 : 10000;
+  const baseTime = bufferState.messageCount === 0 ? 18000 : 15000; // ✅ 15sn → 18sn, 10sn → 15sn
   return Math.min(baseTime, remainingTime);
 }
 
-// ✅ GÜNCELLENDİ: Buffer State Güncelleme - KRİTİK HATA DÜZELTİLDİ
+// ✅ GÜNCELLENDİ: Buffer State Güncelleme - RESET MANTIĞI DÜZELTİLDİ
 function updateBufferState(userId, message, waitTimeUsed = 0) {
   const bufferState = getUserBufferState(userId);
   const now = Date.now();
@@ -89,6 +90,7 @@ function updateBufferState(userId, message, waitTimeUsed = 0) {
   // ✅ DÜZELTME: lastMessageTime'ı sadece yeni mesaj geldiğinde güncelle
   if (waitTimeUsed === 0) { // Sadece yeni mesaj durumunda
     bufferState.lastMessageTime = now;
+    bufferState.conversationStarted = true; // ✅ Konuşma başladı
   }
   
   bufferState.lastUpdateTime = now; // ✅ Her zaman güncelle
@@ -106,7 +108,7 @@ function updateBufferState(userId, message, waitTimeUsed = 0) {
   }
 }
 
-// ✅ YENİ FONKSİYON: Buffer State Reset
+// ✅ GÜNCELLENDİ: Buffer State Reset - SADECE İŞLEM TAMAMLANINCA
 function resetBufferState(userId) {
   userBufferStates.set(userId, {
     lastMessageTime: Date.now(),
@@ -114,19 +116,20 @@ function resetBufferState(userId) {
     totalWaitTime: 0,
     isWaitingForCompletion: false,
     lastMessageLength: 0,
-    lastUpdateTime: Date.now()
+    lastUpdateTime: Date.now(),
+    conversationStarted: false
   });
   console.log(`🔄 BUFFER SIFIRLANDI: ${userId}`);
 }
 
-// ✅ GELİŞTİRİLMİŞ ÖZEL KOMUT KONTROLÜ - KİŞİ İSİMLERİ BYPASS EKLENDİ
+// ✅ GÜNCELLENDİ: ÖZEL KOMUT KONTROLÜ - NEZAKET SORULARI ÇIKARILDI
 function isImmediateCommand(message) {
   const immediateCommands = [
     'menü', 'menu', 'yardım', 'yardim', 'help', 
     'çıkış', 'çıkıs', 'exit', 'geri', 'back',
     'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', // Sayılar
-    'evet', 'hayır', 'tamam', 'ok', 'peki', 'olur', 'yok' // Hızlı cevaplar
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' // Sayılar
+    // ❌ ÇIKARILDI: 'evet', 'hayır', 'tamam', 'ok', 'peki', 'olur', 'yok'
   ];
   
   const cleanMessage = message.toLowerCase().trim();
@@ -162,7 +165,7 @@ function isActiveProcessState(state) {
   return activeStates.some(activeState => state.includes(activeState));
 }
 
-// ✅ GÜNCELLENDİ: BUFFER BİRLEŞTİRME KARARI - KRİTİK ZAMAN HATASI DÜZELTİLDİ
+// ✅ GÜNCELLENDİ: BUFFER BİRLEŞTİRME KARARI - ZAMAN EŞİĞİ ARTIRILDI
 function shouldCombineMessages(newMessage, existingBuffer, userId) {
   if (existingBuffer.length === 0) return false;
   
@@ -192,9 +195,9 @@ function shouldCombineMessages(newMessage, existingBuffer, userId) {
     lastMessage.endsWith('ki') || lastMessage.endsWith('da')
   );
   
-  // 2. ZAMANSAL YAKINLIK - KRİTİK HATA DÜZELTİLDİ
+  // 2. ZAMANSAL YAKINLIK - KRİTİK HATA DÜZELTİLDİ - EŞİK ARTIRILDI
   const timeDiff = Date.now() - bufferState.lastMessageTime;
-  const isRecentMessage = timeDiff < 8000; // 8 saniye
+  const isRecentMessage = timeDiff < 15000; // ✅ 8 saniye → 15 saniye
   
   // 3. MESAJ YAPISI ANALİZİ
   const isShortResponse = newMessage.split(' ').length <= 5;
@@ -254,12 +257,12 @@ function checkServiceFound() {
   return serviceFound;
 }
 
-// ✅ GELİŞTİRİLMİŞ FONKSİYON: Birleştirilmiş mesajı işle
+// ✅ GÜNCELLENDİ: Birleştirilmiş mesajı işle - RESET MANTIĞI DÜZELTİLDİ
 async function processCombinedMessage(message, combinedMessage, contactInfo) {
   console.log(`🎯 Birleştirilmiş mesaj işleniyor: "${combinedMessage}"`);
   
-  // Buffer state reset
-  resetBufferState(message.from);
+  // ✅ DÜZELTME: Buffer state reset'i SADECE işlem tamamlandığında
+  // resetBufferState(message.from); // ❌ KALDIRILDI - Sadece timeout'ta reset
   
   // 1. Mesajı ayrıştır
   const parsedMessage = messageParser.parseMessage(combinedMessage);
@@ -300,7 +303,7 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   }
 }
 
-// ✅ GELİŞTİRİLMİŞ ANA MESAJ İŞLEME FONKSİYONU - 45 SANİYELİK AKILLI SİSTEM
+// ✅ GÜNCELLENDİ: ANA MESAJ İŞLEME FONKSİYONU - TÜM DÜZELTMELER ENTEGRE
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -347,7 +350,7 @@ async function handleMessage(message) {
       return;
     }
     
-    // 6. ÖZEL KOMUT BYPASS - Hemen işle
+    // 6. ÖZEL KOMUT BYPASS - Hemen işle (DARALTILDI)
     const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
     if (isSpecialCommand) {
       console.log(`⚡ Özel komut tespit edildi - Buffer bypass: "${validationResult.messageBody}"`);

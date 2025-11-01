@@ -22,7 +22,8 @@ function createUserSession(userId) {
     messageBuffer: [],
     messageTimer: null,
     lastMessageTime: Date.now(),
-    isProcessingBuffer: false
+    isProcessingBuffer: false,
+    bufferTotalWaitTime: 0 // ✅ YENİ: Toplam bekleme süresi takibi
   };
   
   userSessions.set(userId, session);
@@ -49,7 +50,7 @@ function getUserSession(userId) {
   return session;
 }
 
-// ✅ GÜNCELLENMİŞ BUFFER FONKSİYONU - 45 SANİYELİK SİSTEME UYUMLU
+// ✅ GÜNCELLENDİ: BUFFER FONKSİYONU - MESSAGEHANDLER İLE UYUMLU
 function addToMessageBuffer(userId, message) {
   const session = getUserSession(userId);
   const now = Date.now();
@@ -63,11 +64,10 @@ function addToMessageBuffer(userId, message) {
     clearTimeout(session.messageTimer);
   }
 
-  // ✅ MESAJ HANDLER'DAN AKILLI SÜRE BEKLENİYOR - BU FONKSİYON PASİF
-  // Ana bekleme mantığı artık messageHandler'da calculateSmartWaitTime ile yönetiliyor
+  // ✅ GÜNCELLENDİ: MessageHandler'dan gelen akıllı süre beklenecek
   // Burada sadece minimum güvenlik süresi uyguluyoruz
-  
   const minWaitTime = 3000; // Minimum güvenlik süresi
+  
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
   }, minWaitTime);
@@ -77,7 +77,45 @@ function addToMessageBuffer(userId, message) {
   return session.messageBuffer;
 }
 
-// ✅ GÜNCELLENMİŞ FONKSİYON: Akıllı Buffer Süresi Hesaplama (messageHandler için destek)
+// ✅ YENİ FONKSİYON: Manuel Buffer İşleme (MessageHandler için)
+function processMessageBufferImmediately(userId) {
+  const session = getUserSession(userId);
+  
+  if (session.messageTimer) {
+    clearTimeout(session.messageTimer);
+    session.messageTimer = null;
+  }
+  
+  return processMessageBuffer(userId);
+}
+
+// ✅ GÜNCELLENDİ: BUFFER İŞLEME - TOPLAM SÜRE TAKİBİ
+function processMessageBuffer(userId) {
+  const session = getUserSession(userId);
+  
+  if (session.isProcessingBuffer || session.messageBuffer.length === 0) {
+    return null;
+  }
+  
+  session.isProcessingBuffer = true;
+  
+  const combinedMessage = session.messageBuffer.join(' ');
+  
+  // ✅ YENİ: Buffer istatistikleri
+  const bufferDuration = Date.now() - session.lastMessageTime;
+  session.bufferTotalWaitTime += bufferDuration;
+  
+  console.log(`🔄 Buffer işleniyor: "${combinedMessage}" - Kullanıcı: ${userId}`);
+  console.log(`📊 Buffer istatistik: ${session.messageBuffer.length} mesaj, ${bufferDuration}ms beklendi, Toplam: ${session.bufferTotalWaitTime}ms`);
+  
+  session.messageBuffer = [];
+  session.messageTimer = null;
+  session.isProcessingBuffer = false;
+  
+  return combinedMessage;
+}
+
+// ✅ YENİ FONKSİYON: Buffer Süresi Optimizasyonu (MessageHandler için destek)
 function calculateOptimalWaitTime(message, session) {
   const messageLength = message.length;
   const hasQuestion = message.includes('?') || message.includes('mı?') || message.includes('mi?');
@@ -167,38 +205,6 @@ function isConfirmationMessage(message) {
   return confirmations.includes(lowerMessage) || lowerMessage.length <= 3;
 }
 
-// ✅ GÜNCELLENMİŞ BUFFER İŞLEME FONKSİYONU
-function processMessageBuffer(userId) {
-  const session = getUserSession(userId);
-  
-  if (session.isProcessingBuffer || session.messageBuffer.length === 0) {
-    return null;
-  }
-  
-  session.isProcessingBuffer = true;
-  
-  const combinedMessage = session.messageBuffer.join(' ');
-  console.log(`🔄 Buffer işleniyor: "${combinedMessage}" - Kullanıcı: ${userId}`);
-  
-  session.messageBuffer = [];
-  session.messageTimer = null;
-  session.isProcessingBuffer = false;
-  
-  return combinedMessage;
-}
-
-// ✅ YENİ FONKSİYON: Manuel Buffer İşleme (messageHandler için)
-function processMessageBufferImmediately(userId) {
-  const session = getUserSession(userId);
-  
-  if (session.messageTimer) {
-    clearTimeout(session.messageTimer);
-    session.messageTimer = null;
-  }
-  
-  return processMessageBuffer(userId);
-}
-
 function clearMessageBuffer(userId) {
   const session = getUserSession(userId);
   
@@ -209,6 +215,7 @@ function clearMessageBuffer(userId) {
   
   session.messageBuffer = [];
   session.isProcessingBuffer = false;
+  session.bufferTotalWaitTime = 0; // ✅ YENİ: Toplam süre sıfırlandı
   
   console.log(`🧹 Buffer temizlendi - Kullanıcı: ${userId}`);
 }
@@ -220,11 +227,12 @@ function getBufferStatus(userId) {
     bufferSize: session.messageBuffer.length,
     isProcessing: session.isProcessingBuffer,
     lastMessageTime: session.lastMessageTime,
+    bufferTotalWaitTime: session.bufferTotalWaitTime, // ✅ YENİ: Toplam bekleme süresi
     bufferContent: session.messageBuffer.join(' ')
   };
 }
 
-// GÜNCELLENMİŞ startHelpTimer FONKSİYONU
+// ✅ GÜNCELLENDİ: HELP TIMER - MESSAGEHANDLER İLE UYUMLU
 function startHelpTimer(userId, message, services) {
   const session = getUserSession(userId);
   
@@ -298,7 +306,7 @@ function stopMenuGoodbyeTimer(userId) {
   }
 }
 
-// GÜNCELLENMİŞ handleGoodbye FONKSİYONU - ALINTISIZ MESAJ
+// ✅ GÜNCELLENDİ: VEDALAŞMA FONKSİYONU - BUFFER TEMİZLEME EKLENDİ
 async function handleGoodbye(message) {
   try {
     const serviceLoader = require('./serviceLoader');
@@ -355,13 +363,17 @@ async function handleGoodbye(message) {
     
     console.log(`👋 Vedalaşma mesajı gönderildi (Saat: ${saat}:00) - Kullanıcı: ${message.from}`);
     
+    // ✅ YENİ: Oturumu temizlemeden önce buffer'ı temizle
+    clearMessageBuffer(message.from);
+    
     // Oturumu temizle
     updateUserSession(message.from, {
       currentState: 'main_menu',
       waitingForHelp: false,
       helpTimer: null,
       goodbyeTimer: null,
-      menuTimer: null
+      menuTimer: null,
+      bufferTotalWaitTime: 0
     });
     
   } catch (error) {
@@ -453,7 +465,9 @@ function clearAllSessions() {
 function listActiveSessions() {
   console.log(`📊 Aktif oturumlar: ${userSessions.size}`);
   userSessions.forEach((session, userId) => {
-    console.log(`  👤 ${userId}: ${session.currentState}`);
+    const bufferInfo = session.messageBuffer.length > 0 ? 
+      ` (${session.messageBuffer.length} mesaj buffer'da)` : '';
+    console.log(`  👤 ${userId}: ${session.currentState}${bufferInfo}`);
   });
 }
 

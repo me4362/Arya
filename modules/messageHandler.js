@@ -29,7 +29,7 @@ async function sendReply(message, text) {
   }
 }
 
-// ✅ YENİ FONKSİYON: Akıllı Buffer State Yönetimi
+// ✅ GÜNCELLENDİ: Akıllı Buffer State Yönetimi - KRİTİK HATA DÜZELTİLDİ
 function getUserBufferState(userId) {
   if (!userBufferStates.has(userId)) {
     userBufferStates.set(userId, {
@@ -37,23 +37,26 @@ function getUserBufferState(userId) {
       messageCount: 0,
       totalWaitTime: 0,
       isWaitingForCompletion: false,
-      lastMessageLength: 0
+      lastMessageLength: 0,
+      lastUpdateTime: Date.now() // ✅ YENİ: Son güncelleme zamanı eklendi
     });
   }
   return userBufferStates.get(userId);
 }
 
-// ✅ YENİ FONKSİYON: Akıllı Bekleme Süresi Hesaplama
+// ✅ GÜNCELLENDİ: Akıllı Bekleme Süresi Hesaplama - ZAMAN TESPİTİ DÜZELTİLDİ
 function calculateSmartWaitTime(message, userId) {
   const bufferState = getUserBufferState(userId);
   const now = Date.now();
-  const timeSinceLastMessage = now - bufferState.lastMessageTime;
+  
+  // ✅ DÜZELTME: Gerçek zaman farkını kullan
+  const timeSinceLastUpdate = now - bufferState.lastUpdateTime;
   const messageLength = message.length;
   
-  console.log(`⏱️  AKILLI SÜRE HESAPLAMA: Mesaj=${messageLength}karakter, SonMesaj=${timeSinceLastMessage}ms önce, Sayı=${bufferState.messageCount}`);
+  console.log(`⏱️  AKILLI SÜRE HESAPLAMA: Mesaj=${messageLength}karakter, SonGüncelleme=${timeSinceLastUpdate}ms önce, Sayı=${bufferState.messageCount}`);
   
   // 1. KADEME - Hızlı devam (kısa mesajlar, hızlı yazım)
-  if (timeSinceLastMessage < 5000 && messageLength < 25) {
+  if (timeSinceLastUpdate < 5000 && messageLength < 25) {
     // Kısa mesajlar hızlı geliyorsa 8 saniye bekle
     return 8000;
   }
@@ -78,18 +81,23 @@ function calculateSmartWaitTime(message, userId) {
   return Math.min(baseTime, remainingTime);
 }
 
-// ✅ YENİ FONKSİYON: Buffer State Güncelleme
+// ✅ GÜNCELLENDİ: Buffer State Güncelleme - KRİTİK HATA DÜZELTİLDİ
 function updateBufferState(userId, message, waitTimeUsed = 0) {
   const bufferState = getUserBufferState(userId);
   const now = Date.now();
   
-  bufferState.lastMessageTime = now;
+  // ✅ DÜZELTME: lastMessageTime'ı sadece yeni mesaj geldiğinde güncelle
+  if (waitTimeUsed === 0) { // Sadece yeni mesaj durumunda
+    bufferState.lastMessageTime = now;
+  }
+  
+  bufferState.lastUpdateTime = now; // ✅ Her zaman güncelle
   bufferState.messageCount += 1;
   bufferState.totalWaitTime += waitTimeUsed;
   bufferState.lastMessageLength = message.length;
   bufferState.isWaitingForCompletion = waitTimeUsed > 0;
   
-  console.log(`🔄 BUFFER DURUM: Mesaj#${bufferState.messageCount}, ToplamBekleme=${bufferState.totalWaitTime}ms, SonUzunluk=${bufferState.lastMessageLength}`);
+  console.log(`🔄 BUFFER DURUM: Mesaj#${bufferState.messageCount}, ToplamBekleme=${bufferState.totalWaitTime}ms, SonMesajZamanı=${now - bufferState.lastMessageTime}ms önce`);
   
   // 45 saniyeyi geçtiyse resetle
   if (bufferState.totalWaitTime >= 45000) {
@@ -105,7 +113,8 @@ function resetBufferState(userId) {
     messageCount: 0,
     totalWaitTime: 0,
     isWaitingForCompletion: false,
-    lastMessageLength: 0
+    lastMessageLength: 0,
+    lastUpdateTime: Date.now()
   });
   console.log(`🔄 BUFFER SIFIRLANDI: ${userId}`);
 }
@@ -153,7 +162,7 @@ function isActiveProcessState(state) {
   return activeStates.some(activeState => state.includes(activeState));
 }
 
-// ✅ GÜNCELLENMİŞ BUFFER BİRLEŞTİRME KARARI - AKILLI ANALİZ
+// ✅ GÜNCELLENDİ: BUFFER BİRLEŞTİRME KARARI - KRİTİK ZAMAN HATASI DÜZELTİLDİ
 function shouldCombineMessages(newMessage, existingBuffer, userId) {
   if (existingBuffer.length === 0) return false;
   
@@ -183,7 +192,7 @@ function shouldCombineMessages(newMessage, existingBuffer, userId) {
     lastMessage.endsWith('ki') || lastMessage.endsWith('da')
   );
   
-  // 2. ZAMANSAL YAKINLIK - Akıllı buffer durumuna göre
+  // 2. ZAMANSAL YAKINLIK - KRİTİK HATA DÜZELTİLDİ
   const timeDiff = Date.now() - bufferState.lastMessageTime;
   const isRecentMessage = timeDiff < 8000; // 8 saniye
   
@@ -198,7 +207,7 @@ function shouldCombineMessages(newMessage, existingBuffer, userId) {
                        (isShortResponse || isQuestionAnswer || isQuickConfirmation);
   
   console.log(`📊 AKILLI KARAR: ` +
-    `Sohbet=${isConversationContinuation}, Zaman=${isRecentMessage}ms, ` +
+    `Sohbet=${isConversationContinuation}, Zaman=${timeDiff}ms, ` +
     `Kısa=${isShortResponse}, SoruCevap=${isQuestionAnswer} → ${shouldCombine ? 'BİRLEŞTİR' : 'BEKLE'}`);
   
   return shouldCombine;

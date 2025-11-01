@@ -153,6 +153,40 @@ function startHelpTimer(userId, message, services) {
   });
 }
 
+// ✅ YENİ FONKSİYON: 6 dakika menü vedalaşma timer'ı
+function startMenuGoodbyeTimer(userId, message) {
+  const session = getUserSession(userId);
+  
+  // Önceki timer'ları temizle
+  if (session.menuTimer) {
+    clearTimeout(session.menuTimer);
+  }
+
+  console.log(`⏰ Menü vedalaşma timer başlatıldı (6 dakika) - Kullanıcı: ${userId}`);
+
+  // 6 dakika sonra direkt vedalaşma
+  const menuTimer = setTimeout(async () => {
+    console.log(`⏰ 6 dakika zaman aşımı - Vedalaşma: ${userId}`);
+    await handleGoodbye(message);
+  }, 6 * 60 * 1000); // 6 dakika
+
+  updateUserSession(userId, { 
+    menuTimer: menuTimer
+  });
+}
+
+// ✅ YENİ FONKSİYON: Menü timer'ını durdur
+function stopMenuGoodbyeTimer(userId) {
+  const session = getUserSession(userId);
+  if (session && session.menuTimer) {
+    clearTimeout(session.menuTimer);
+    updateUserSession(userId, { 
+      menuTimer: null
+    });
+    console.log(`⏰ Menü timer durduruldu - Kullanıcı: ${userId}`);
+  }
+}
+
 // GÜNCELLENMİŞ handleGoodbye FONKSİYONU
 async function handleGoodbye(message) {
   try {
@@ -213,7 +247,8 @@ async function handleGoodbye(message) {
       currentState: 'main_menu',
       waitingForHelp: false,
       helpTimer: null,
-      goodbyeTimer: null
+      goodbyeTimer: null,
+      menuTimer: null
     });
     
   } catch (error) {
@@ -319,5 +354,8 @@ module.exports = {
   addToMessageBuffer,
   processMessageBuffer,
   clearMessageBuffer,
-  getBufferStatus
+  getBufferStatus,
+  // ✅ YENİ FONKSİYONLAR
+  startMenuGoodbyeTimer,
+  stopMenuGoodbyeTimer
 };

@@ -1,4 +1,4 @@
-// modules/menuHandler.js - ANA YÖNLENDİRİCİ DOSYA
+// modules/menuHandler.js - ANA YÖNLENDİRİCİ DOSYA + 6 DAKİKA TIMER EKLENDİ
 const mainMenu = require('./menuHandler/mainMenu');
 const subMenu = require('./menuHandler/subMenu');
 const numberHandler = require('./menuHandler/numberHandler');
@@ -6,9 +6,27 @@ const serviceConverter = require('./menuHandler/serviceConverter');
 const categoryManager = require('./menuHandler/categoryManager');
 const navigation = require('./menuHandler/navigation');
 
-// Ana menü göster
+// Ana menü göster - GÜNCELLENDİ (6 DAKİKA TIMER EKLENDİ)
 async function showMainMenu(message, services) {
-  await mainMenu.showMainMenu(message, services);
+  try {
+    const sessionManager = require('./sessionManager');
+    
+    // Önceki timer'ı durdur (yeniden başlatmak için)
+    sessionManager.stopMenuGoodbyeTimer(message.from);
+    
+    // Menüyü göster
+    await mainMenu.showMainMenu(message, services);
+    
+    // 6 dakika timer'ını başlat
+    sessionManager.startMenuGoodbyeTimer(message.from, message);
+    
+    console.log(`📋 Menü gösterildi - 6 dakika timer başlatıldı: ${message.from}`);
+    
+  } catch (error) {
+    console.error('Menü gösterim hatası:', error);
+    // Fallback: normal menü gösterimi
+    await mainMenu.showMainMenu(message, services);
+  }
 }
 
 // Sayı seçimini işle

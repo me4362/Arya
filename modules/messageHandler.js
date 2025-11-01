@@ -59,7 +59,7 @@ async function sendServiceNotAvailable(message, serviceRequest = '') {
   }
   
   await sendReply(message, responseText);
-  console.log(`🚫 Kurumsal red mesajı gönderildi: "${serviceRequest.substring(0, 50)}..."`);
+  console.log(`🚫 Kurumsal red mesajı gönderildi: "${serviceRequest ? serviceRequest.substring(0, 50) : 'bilinmeyen'}..."`);
 }
 
 // Servis durumunu kontrol et (basit fonksiyon)

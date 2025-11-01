@@ -1,4 +1,4 @@
-// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ EKLENDİ
+// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER EKLENDİ
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');
 const sessionRouter = require('./messageHandler/sessionRouter');
@@ -146,6 +146,7 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   const sessionManager = require('./sessionManager');
   sessionManager.stopHelpTimer(message.from);
   sessionManager.stopMenuTimer(message.from);
+  sessionManager.stopMenuGoodbyeTimer(message.from); // ✅ YENİ: Menü timer'ını durdur
   
   // 3. Oturum durumuna göre yönlendir
   await sessionRouter.route(message, parsedMessage, contactInfo.name, () => {
@@ -170,7 +171,7 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   }
 }
 
-// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - AKILLI BUFFER EKLENDİ
+// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - MENÜ TIMER DURDURMA EKLENDİ
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -195,47 +196,48 @@ async function handleMessage(message) {
     console.log(`🔍 Oturum durumu: ${session.currentState}, Mesaj: "${validationResult.messageBody}"`);
     console.log(`📊 Buffer durumu: ${session.messageBuffer.length} mesaj, İşleniyor: ${session.isProcessingBuffer}`);
     
-    // ✅ YENİ: Buffer kontrolü - eğer buffer işleniyorsa bekle
+    // ✅ DEĞİŞTİ: Kullanıcı mesaj gönderdiğinde MENÜ TIMER'INI DURDUR
+    sessionManager.stopMenuGoodbyeTimer(message.from);
+    
+    // ✅ KALDIR: Çift timer başlatma - ESKİ KOD
+    // startHelpTimer(message); // BU SATIR KALDIRILDI
+    
+    // ✅ YENİ: Sadece yardım timer'ını durdur (mevcut sistemle uyumluluk)
+    sessionManager.stopHelpTimer(message.from);
+    
+    // 4. Buffer kontrolü - eğer buffer işleniyorsa bekle
     if (session.isProcessingBuffer) {
       console.log(`⏳ Buffer işleniyor, yeni mesaj bekleniyor...`);
       return;
     }
     
-    // ✅ YENİ: AKTİF İŞLEM BYPASS - Eğer kullanıcı aktif işlem yapıyorsa buffer'ı atla
+    // 5. AKTİF İŞLEM BYPASS - Eğer kullanıcı aktif işlem yapıyorsa buffer'ı atla
     if (isActiveProcessState(session.currentState)) {
       console.log(`⚡ Aktif işlem tespit edildi - Buffer bypass: ${session.currentState}`);
-      
-      // Timer'ları durdur
-      sessionManager.stopHelpTimer(message.from);
-      sessionManager.stopMenuTimer(message.from);
       
       // Mesajı hemen işle
       await processCombinedMessage(message, validationResult.messageBody, contactInfo);
       return;
     }
     
-    // ✅ YENİ: Özel komut bypass - Hemen işle
+    // 6. Özel komut bypass - Hemen işle
     const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
     if (isSpecialCommand) {
       console.log(`⚡ Özel komut tespit edildi - Buffer bypass: "${validationResult.messageBody}"`);
       
-      // Timer'ları durdur
-      sessionManager.stopHelpTimer(message.from);
-      sessionManager.stopMenuTimer(message.from);
-      
       // Mesajı hemen işle
       await processCombinedMessage(message, validationResult.messageBody, contactInfo);
       return;
     }
     
-    // ✅ YENİ: Buffer'a mesaj ekle
+    // 7. Buffer'a mesaj ekle
     sessionManager.addToMessageBuffer(message.from, validationResult.messageBody);
     
     // Buffer durumunu kontrol et
     const bufferStatus = sessionManager.getBufferStatus(message.from);
     console.log(`📥 Buffer'a eklendi: ${bufferStatus.bufferSize} mesaj -> "${bufferStatus.bufferContent}"`);
     
-    // ✅ GÜNCELLENDİ: Akıllı buffer birleştirme kararı
+    // 8. Akıllı buffer birleştirme kararı
     const shouldCombine = shouldCombineMessages(validationResult.messageBody, session.messageBuffer);
     
     // Eğer buffer'da 1 mesaj varsa ve birleştirme gerekmiyorsa, timer'ı bekleyelim

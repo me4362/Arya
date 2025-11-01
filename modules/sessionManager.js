@@ -187,7 +187,7 @@ function stopMenuGoodbyeTimer(userId) {
   }
 }
 
-// GÜNCELLENMİŞ handleGoodbye FONKSİYONU - ALINTISIZ MESAJ
+// GÜNCELLENMİŞ handleGoodbye FONKSİYONU
 async function handleGoodbye(message) {
   try {
     const serviceLoader = require('./serviceLoader');
@@ -238,9 +238,7 @@ async function handleGoodbye(message) {
       goodbyeMsg = '👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!';
     }
     
-    // ✅ DEĞİŞTİ: Alıntısız mesaj gönderme
-    const { sendMessageWithoutQuote } = require('./utils/globalClient');
-    await sendMessageWithoutQuote(message.from, goodbyeMsg);
+    await message.reply(goodbyeMsg);
     
     console.log(`👋 Vedalaşma mesajı gönderildi (Saat: ${saat}:00) - Kullanıcı: ${message.from}`);
     
@@ -255,14 +253,8 @@ async function handleGoodbye(message) {
     
   } catch (error) {
     console.log(`❌ Vedalaşma mesajı hatası: ${error.message}`);
-    // Fallback mesaj - yine alıntısız
-    try {
-      const { sendMessageWithoutQuote } = require('./utils/globalClient');
-      await sendMessageWithoutQuote(message.from, '👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
-    } catch (fallbackError) {
-      // Son çare: normal reply
-      await message.reply('👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
-    }
+    // Fallback mesaj
+    await message.reply('👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
   }
 }
 

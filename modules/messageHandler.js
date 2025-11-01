@@ -1,4 +1,4 @@
-// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER EKLENDİ + ÇİFT MENÜ KORUMASI
+// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER + ÇİFT MENÜ KORUMASI + AKILLI BİRLEŞTİRME + GELİŞMİŞ KOMUT KONTROLÜ
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');
 const sessionRouter = require('./messageHandler/sessionRouter');
@@ -24,6 +24,101 @@ async function sendReply(message, text) {
       logger.error(`Fallback mesaj gönderme de başarısız: ${fallbackError.message}`);
     }
   }
+}
+
+// ✅ GELİŞTİRİLMİŞ ÖZEL KOMUT KONTROLÜ - KİŞİ İSİMLERİ BYPASS EKLENDİ
+function isImmediateCommand(message) {
+  const immediateCommands = [
+    'menü', 'menu', 'yardım', 'yardim', 'help', 
+    'çıkış', 'çıkıs', 'exit', 'geri', 'back',
+    'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', // Sayılar
+    'evet', 'hayır', 'tamam', 'ok', 'peki', 'olur', 'yok' // Hızlı cevaplar
+  ];
+  
+  const cleanMessage = message.toLowerCase().trim();
+  
+  // ✅ YENİ: Kişi isimlerini komut olarak görme (Mehmet bey, Ahmet bey vb.)
+  const isPersonName = /(bey|hanım|hanim|efendi)$/.test(cleanMessage) && cleanMessage.split(' ').length <= 3;
+  
+  // ✅ YENİ: Tek kelime mesajları kontrol et (büyük olasılıkla komuttur)
+  const isSingleWord = cleanMessage.split(' ').length === 1 && cleanMessage.length <= 15;
+  
+  // ✅ YENİ: Emoji veya kısa ifadeler
+  const isShortExpression = cleanMessage.length <= 5 || /^[👍👋✅❌👌🤔]+$/.test(cleanMessage);
+  
+  return immediateCommands.some(cmd => cleanMessage.includes(cmd)) || 
+         isPersonName || 
+         isSingleWord || 
+         isShortExpression;
+}
+
+// ✅ YENİ FONKSİYON: Aktif işlem durumunu kontrol et
+function isActiveProcessState(state) {
+  const activeStates = [
+    'waiting_for_service',
+    'waiting_for_response', 
+    'service_flow',
+    'question_flow',
+    'collecting_info',
+    'processing_order',
+    'payment_pending',
+    'confirmation_pending'
+  ];
+  
+  return activeStates.some(activeState => state.includes(activeState));
+}
+
+// ✅ GELİŞTİRİLMİŞ BUFFER BİRLEŞTİRME KARARI - AKILLI ANALİZ
+function shouldCombineMessages(newMessage, existingBuffer, userId) {
+  if (existingBuffer.length === 0) return false;
+  
+  const lastMessage = existingBuffer[existingBuffer.length - 1];
+  
+  console.log(`🔍 AKILLI KONU ANALİZİ: Son="${lastMessage}", Yeni="${newMessage}"`);
+  
+  // 1. GRAMER VE SOHBET ANALİZİ
+  const isConversationContinuation = (
+    // Soru-cevap akışı
+    (lastMessage.includes('?') && newMessage.length < 50) ||
+    // Onay/red akışı
+    newMessage.startsWith('evet') || newMessage.startsWith('hayır') ||
+    newMessage.startsWith('tamam') || newMessage.startsWith('peki') ||
+    newMessage.startsWith('olur') || newMessage.startsWith('yok') ||
+    // Bağlaçlarla devam
+    newMessage.startsWith('sonra') || newMessage.startsWith('yani') ||
+    newMessage.startsWith('ama') || newMessage.startsWith('veya') ||
+    newMessage.startsWith('ve ') || newMessage.startsWith('bir de') ||
+    newMessage.startsWith('önce') || newMessage.startsWith('şimdi') ||
+    newMessage.startsWith('daha ') || newMessage.startsWith('hemen ') ||
+    newMessage.startsWith('şu ') || newMessage.startsWith('bu ') ||
+    // Eksik cümle tamamlama
+    lastMessage.endsWith(',') || lastMessage.endsWith('ve') ||
+    lastMessage.endsWith('ama') || lastMessage.endsWith('sonra') ||
+    lastMessage.endsWith('ki') || lastMessage.endsWith('da')
+  );
+  
+  // 2. ZAMANSAL YAKINLIK
+  const sessionManager = require('./sessionManager');
+  const session = sessionManager.getUserSession(userId);
+  const timeDiff = Date.now() - session.lastMessageTime;
+  const isRecentMessage = timeDiff < 10000; // 10 saniye
+  
+  // 3. MESAJ YAPISI ANALİZİ
+  const isShortResponse = newMessage.split(' ').length <= 5;
+  const isQuestionAnswer = lastMessage.includes('?') && !newMessage.includes('?');
+  const isQuickConfirmation = newMessage.length <= 20 && 
+    (newMessage.includes('evet') || newMessage.includes('hayır') || 
+     newMessage.includes('tamam') || newMessage.includes('ok'));
+  
+  const shouldCombine = (isConversationContinuation || isRecentMessage) && 
+                       (isShortResponse || isQuestionAnswer || isQuickConfirmation);
+  
+  console.log(`📊 AKILLI KARAR: ` +
+    `Sohbet=${isConversationContinuation}, Zaman=${isRecentMessage}ms, ` +
+    `Kısa=${isShortResponse}, SoruCevap=${isQuestionAnswer} → ${shouldCombine ? 'BİRLEŞTİR' : 'BEKLE'}`);
+  
+  return shouldCombine;
 }
 
 // ✅ YENİ FONKSİYON: Kurumsal red mesajı gönder
@@ -67,73 +162,7 @@ function checkServiceFound() {
   return serviceFound;
 }
 
-// ✅ YENİ FONKSİYON: Özel komut kontrolü
-function isImmediateCommand(message) {
-  const immediateCommands = [
-    'menü', 'menu', 'yardım', 'yardim', 'help', 
-    'çıkış', 'çıkıs', 'exit', 'geri', 'back',
-    'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', // Sayılar
-    'evet', 'hayır', 'tamam', 'ok' // Hızlı cevaplar
-  ];
-  
-  const cleanMessage = message.toLowerCase().trim();
-  return immediateCommands.some(cmd => cleanMessage.includes(cmd));
-}
-
-// ✅ YENİ FONKSİYON: Aktif işlem durumunu kontrol et
-function isActiveProcessState(state) {
-  const activeStates = [
-    'waiting_for_service',
-    'waiting_for_response', 
-    'service_flow',
-    'question_flow',
-    'collecting_info',
-    'processing_order'
-  ];
-  
-  return activeStates.some(activeState => state.includes(activeState));
-}
-
-// ✅ YENİ FONKSİYON: Akıllı buffer birleştirme kararı
-function shouldCombineMessages(newMessage, existingBuffer) {
-  if (existingBuffer.length === 0) return false;
-  
-  const lastMessage = existingBuffer[existingBuffer.length - 1];
-  const combinedText = existingBuffer.join(' ') + ' ' + newMessage;
-  
-  console.log(`🔍 Buffer analizi: Son mesaj="${lastMessage}", Yeni="${newMessage}"`);
-  
-  // 1. Kısa mesajlar hemen birleştirilsin (sohbet devamı)
-  const isShortSequence = newMessage.length < 20 && lastMessage.length < 20;
-  
-  // 2. Noktalama ile bitiyorsa veya başlıyorsa birleştir
-  const hasPunctuationContinuation = (
-    lastMessage.endsWith('.') || 
-    lastMessage.endsWith(',') ||
-    newMessage.startsWith('ve ') ||
-    newMessage.startsWith('ama ') ||
-    newMessage.startsWith('sonra ') ||
-    newMessage.startsWith('yani ')
-  );
-  
-  // 3. Aynı konu devam ediyorsa birleştir
-  const commonTopics = ['sigorta', 'fiyat', 'ücret', 'kasko', 'trafik', 'yeşil', 'yesil', 'hizmet', 'yardım'];
-  const hasCommonTopic = commonTopics.some(topic => 
-    lastMessage.toLowerCase().includes(topic) && newMessage.toLowerCase().includes(topic)
-  );
-  
-  // 4. Toplam karakter sınırı (çok uzun olmasın)
-  const isWithinLengthLimit = combinedText.length < 200;
-  
-  const shouldCombine = (isShortSequence || hasPunctuationContinuation || hasCommonTopic) && isWithinLengthLimit;
-  
-  console.log(`📊 Birleştirme kararı: Kısa=${isShortSequence}, Noktalama=${hasPunctuationContinuation}, Konu=${hasCommonTopic}, Uzunluk=${isWithinLengthLimit} → ${shouldCombine ? 'BİRLEŞTİR' : 'BEKLE'}`);
-  
-  return shouldCombine;
-}
-
-// ✅ YENİ FONKSİYON: Birleştirilmiş mesajı işle
+// ✅ GELİŞTİRİLMİŞ FONKSİYON: Birleştirilmiş mesajı işle
 async function processCombinedMessage(message, combinedMessage, contactInfo) {
   console.log(`🎯 Birleştirilmiş mesaj işleniyor: "${combinedMessage}"`);
   
@@ -146,9 +175,14 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   const sessionManager = require('./sessionManager');
   sessionManager.stopHelpTimer(message.from);
   sessionManager.stopMenuTimer(message.from);
-  sessionManager.stopMenuGoodbyeTimer(message.from); // ✅ YENİ: Menü timer'ını durdur
+  sessionManager.stopMenuGoodbyeTimer(message.from);
   
-  // 3. Oturum durumuna göre yönlendir
+  // 3. Özel komut kontrolü - eğer komut varsa önce işle
+  if (isImmediateCommand(combinedMessage)) {
+    console.log(`⚡ Birleştirilmiş mesajda özel komut tespit edildi: "${combinedMessage}"`);
+  }
+  
+  // 4. Oturum durumuna göre yönlendir
   await sessionRouter.route(message, parsedMessage, contactInfo.name, () => {
     // Callback: servis bulunduğunda çağrılacak
     serviceFound = true;
@@ -171,7 +205,7 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   }
 }
 
-// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - MENÜ TIMER DURDURMA EKLENDİ
+// ✅ GELİŞTİRİLMİŞ ANA MESAJ İŞLEME FONKSİYONU
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -196,10 +230,8 @@ async function handleMessage(message) {
     console.log(`🔍 Oturum durumu: ${session.currentState}, Mesaj: "${validationResult.messageBody}"`);
     console.log(`📊 Buffer durumu: ${session.messageBuffer.length} mesaj, İşleniyor: ${session.isProcessingBuffer}`);
     
-    // ✅ DEĞİŞTİ: Kullanıcı mesaj gönderdiğinde MENÜ TIMER'INI DURDUR
+    // ✅ Kullanıcı mesaj gönderdiğinde tüm timer'ları durdur
     sessionManager.stopMenuGoodbyeTimer(message.from);
-    
-    // ✅ YENİ: Sadece yardım timer'ını durdur (mevcut sistemle uyumluluk)
     sessionManager.stopHelpTimer(message.from);
     
     // 4. Buffer kontrolü - eğer buffer işleniyorsa bekle
@@ -217,7 +249,7 @@ async function handleMessage(message) {
       return;
     }
     
-    // 6. Özel komut bypass - Hemen işle
+    // 6. ÖZEL KOMUT BYPASS - Hemen işle
     const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
     if (isSpecialCommand) {
       console.log(`⚡ Özel komut tespit edildi - Buffer bypass: "${validationResult.messageBody}"`);
@@ -235,11 +267,11 @@ async function handleMessage(message) {
     console.log(`📥 Buffer'a eklendi: ${bufferStatus.bufferSize} mesaj -> "${bufferStatus.bufferContent}"`);
     
     // 8. Akıllı buffer birleştirme kararı
-    const shouldCombine = shouldCombineMessages(validationResult.messageBody, session.messageBuffer);
+    const shouldCombine = shouldCombineMessages(validationResult.messageBody, session.messageBuffer, message.from);
     
     // Eğer buffer'da 1 mesaj varsa ve birleştirme gerekmiyorsa, timer'ı bekleyelim
     if (!isSpecialCommand && bufferStatus.bufferSize === 1 && !shouldCombine) {
-      console.log(`⏰ İlk mesaj, 7 saniye bekleniyor...`);
+      console.log(`⏰ İlk mesaj, optimize süre bekleniyor...`);
       return; // Timer bitene kadar bekle
     }
     
@@ -256,15 +288,27 @@ async function handleMessage(message) {
     
   } catch (error) {
     console.log(`❌ Mesaj işleme hatası: ${error.message}`);
-    
-    // Hata durumunda kurumsal mesaj gönder
     console.log('🔄 Hata durumunda kurumsal mesaj gönderiliyor...');
+    
     try {
       await sendServiceNotAvailable(message, 'İsteğiniz');
     } catch (finalError) {
       await errorHandler.handleError(message, finalError);
     }
   }
+}
+
+// ✅ YENİ FONKSİYON: Hızlı komut işleme (dış modüller için)
+async function processImmediateCommand(message, command) {
+  const sessionManager = require('./sessionManager');
+  const contactInfo = await contactManager.logContactInteraction(message, 'Hızlı komut işlendi');
+  
+  // Timer'ları durdur
+  sessionManager.stopMenuGoodbyeTimer(message.from);
+  sessionManager.stopHelpTimer(message.from);
+  
+  // Komutu hemen işle
+  await processCombinedMessage(message, command, contactInfo);
 }
 
 module.exports = {
@@ -278,10 +322,11 @@ module.exports = {
   findMatchingService: require('./messageHandler/serviceMatcher').findMatchingService,
   createPersonalizedGreeting: require('./messageHandler/personalization').createPersonalizedGreeting,
   
-  // ✅ YENİ FONKSİYONLAR
+  // ✅ GELİŞMİŞ FONKSİYONLAR
   sendServiceNotAvailable,
   isImmediateCommand,
   isActiveProcessState,
   shouldCombineMessages,
-  processCombinedMessage
+  processCombinedMessage,
+  processImmediateCommand
 };

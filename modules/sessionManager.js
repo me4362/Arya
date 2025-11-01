@@ -49,6 +49,7 @@ function getUserSession(userId) {
   return session;
 }
 
+// ✅ OPTİMİZE EDİLMİŞ BUFFER FONKSİYONU
 function addToMessageBuffer(userId, message) {
   const session = getUserSession(userId);
   const now = Date.now();
@@ -61,12 +62,107 @@ function addToMessageBuffer(userId, message) {
   if (session.messageTimer) {
     clearTimeout(session.messageTimer);
   }
+
+  // ✅ OPTİMİZE EDİLMİŞ BUFFER SÜRESİ HESAPLAMA
+  const waitTime = calculateOptimalWaitTime(message, session);
   
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
-  }, 7000);
+  }, waitTime);
+  
+  console.log(`⏰ Optimize buffer süresi: ${waitTime}ms - Mesaj: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
   
   return session.messageBuffer;
+}
+
+// ✅ YENİ FONKSİYON: Akıllı Buffer Süresi Hesaplama
+function calculateOptimalWaitTime(message, session) {
+  const messageLength = message.length;
+  const hasQuestion = message.includes('?') || message.includes('mı?') || message.includes('mi?');
+  const hasUrgentWords = hasUrgentKeywords(message);
+  const isQuickResponse = hasQuickResponsePattern(message);
+  const bufferSize = session.messageBuffer.length;
+  
+  let baseTime = 10000; // Varsayılan 10 saniye
+  
+  // 📝 MESAJ UZUNLUĞUNA GÖRE OPTİMİZASYON
+  if (messageLength < 15) {
+    baseTime = 5000; // Çok kısa mesajlar: 5 saniye
+  } else if (messageLength < 30) {
+    baseTime = 7000; // Kısa mesajlar: 7 saniye
+  } else if (messageLength > 100) {
+    baseTime = 4000; // Çok uzun mesajlar: 4 saniye (hızlı işle)
+  } else if (messageLength > 50) {
+    baseTime = 6000; // Uzun mesajlar: 6 saniye
+  }
+  
+  // ❓ SORU VARSA DAHA HIZLI
+  if (hasQuestion) {
+    baseTime = Math.min(baseTime, 6000);
+    
+    // Acil sorular için ekstra hız
+    if (hasUrgentWords) {
+      baseTime = Math.min(baseTime, 4000);
+    }
+  }
+  
+  // 🚀 HIZLI YANIT GEREKTİREN MESAJLAR
+  if (isQuickResponse) {
+    baseTime = Math.min(baseTime, 5000);
+  }
+  
+  // 📊 BUFFER DOLULUĞUNA GÖRE AYARLAMA
+  if (bufferSize > 0) {
+    // Buffer'da mesaj varsa biraz daha hızlı işle
+    baseTime = Math.max(3000, baseTime - (bufferSize * 500));
+  }
+  
+  // ⚡ MESAJ TİPİNE GÖRE İNCE AYAR
+  if (hasEmojisOnly(message) || isConfirmationMessage(message)) {
+    baseTime = 4000; // Emoji/onay mesajları: 4 saniye
+  }
+  
+  // 🛡️ MİNİMUM VE MAKSİMUM SÜRE KONTROLÜ
+  return Math.max(2000, Math.min(baseTime, 15000)); // 2-15 saniye arası
+}
+
+// ✅ YARDIMCI FONKSİYONLAR
+function hasUrgentKeywords(message) {
+  const urgentWords = [
+    'acil', 'acele', 'hemen', 'lütfen', 'yardım', 'problem', 'sorun', 
+    'hata', 'çalışmıyor', 'yetki', 'kritik', 'important', 'urgent',
+    'bekliyorum', 'cevap', 'yanıt', 'ne zaman', 'kaç para', 'fiyat'
+  ];
+  
+  const lowerMessage = message.toLowerCase();
+  return urgentWords.some(word => lowerMessage.includes(word));
+}
+
+function hasQuickResponsePattern(message) {
+  const quickPatterns = [
+    'selam', 'merhaba', 'hello', 'hi', 'günaydın', 'iyi günler',
+    'evet', 'hayır', 'tamam', 'ok', 'okey', '👍', '👋',
+    'sağol', 'teşekkür', 'thanks', 'thank you'
+  ];
+  
+  const lowerMessage = message.toLowerCase();
+  return quickPatterns.some(pattern => lowerMessage.includes(pattern));
+}
+
+function hasEmojisOnly(message) {
+  // Sadece emoji içeren mesajları tespit et
+  const emojiRegex = /^(?:[\p{Emoji}\u200d\uFE0F\s]|[+-])+$/u;
+  return emojiRegex.test(message.trim()) && message.length <= 10;
+}
+
+function isConfirmationMessage(message) {
+  const confirmations = [
+    'evet', 'hayır', 'tamam', 'old', 'olur', 'yok', 'var',
+    'doğru', 'yanlış', 'kesin', 'belki', 'tabi', 'elbette'
+  ];
+  
+  const lowerMessage = message.toLowerCase().trim();
+  return confirmations.includes(lowerMessage) || lowerMessage.length <= 3;
 }
 
 function processMessageBuffer(userId) {
@@ -365,5 +461,9 @@ module.exports = {
   getBufferStatus,
   // ✅ YENİ FONKSİYONLAR
   startMenuGoodbyeTimer,
-  stopMenuGoodbyeTimer
+  stopMenuGoodbyeTimer,
+  // ✅ OPTİMİZASYON FONKSİYONLARI (iç kullanım için)
+  calculateOptimalWaitTime,
+  hasUrgentKeywords,
+  hasQuickResponsePattern
 };

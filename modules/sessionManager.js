@@ -49,7 +49,7 @@ function getUserSession(userId) {
   return session;
 }
 
-// ✅ OPTİMİZE EDİLMİŞ BUFFER FONKSİYONU
+// ✅ GÜNCELLENMİŞ BUFFER FONKSİYONU - 45 SANİYELİK SİSTEME UYUMLU
 function addToMessageBuffer(userId, message) {
   const session = getUserSession(userId);
   const now = Date.now();
@@ -63,19 +63,21 @@ function addToMessageBuffer(userId, message) {
     clearTimeout(session.messageTimer);
   }
 
-  // ✅ OPTİMİZE EDİLMİŞ BUFFER SÜRESİ HESAPLAMA
-  const waitTime = calculateOptimalWaitTime(message, session);
+  // ✅ MESAJ HANDLER'DAN AKILLI SÜRE BEKLENİYOR - BU FONKSİYON PASİF
+  // Ana bekleme mantığı artık messageHandler'da calculateSmartWaitTime ile yönetiliyor
+  // Burada sadece minimum güvenlik süresi uyguluyoruz
   
+  const minWaitTime = 3000; // Minimum güvenlik süresi
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
-  }, waitTime);
+  }, minWaitTime);
   
-  console.log(`⏰ Optimize buffer süresi: ${waitTime}ms - Mesaj: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
+  console.log(`⏰ Buffer timer başlatıldı: ${minWaitTime}ms - Mesaj: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
   
   return session.messageBuffer;
 }
 
-// ✅ YENİ FONKSİYON: Akıllı Buffer Süresi Hesaplama
+// ✅ GÜNCELLENMİŞ FONKSİYON: Akıllı Buffer Süresi Hesaplama (messageHandler için destek)
 function calculateOptimalWaitTime(message, session) {
   const messageLength = message.length;
   const hasQuestion = message.includes('?') || message.includes('mı?') || message.includes('mi?');
@@ -165,6 +167,7 @@ function isConfirmationMessage(message) {
   return confirmations.includes(lowerMessage) || lowerMessage.length <= 3;
 }
 
+// ✅ GÜNCELLENMİŞ BUFFER İŞLEME FONKSİYONU
 function processMessageBuffer(userId) {
   const session = getUserSession(userId);
   
@@ -182,6 +185,18 @@ function processMessageBuffer(userId) {
   session.isProcessingBuffer = false;
   
   return combinedMessage;
+}
+
+// ✅ YENİ FONKSİYON: Manuel Buffer İşleme (messageHandler için)
+function processMessageBufferImmediately(userId) {
+  const session = getUserSession(userId);
+  
+  if (session.messageTimer) {
+    clearTimeout(session.messageTimer);
+    session.messageTimer = null;
+  }
+  
+  return processMessageBuffer(userId);
 }
 
 function clearMessageBuffer(userId) {
@@ -457,6 +472,7 @@ module.exports = {
   listActiveSessions,
   addToMessageBuffer,
   processMessageBuffer,
+  processMessageBufferImmediately, // ✅ YENİ: Manuel buffer işleme
   clearMessageBuffer,
   getBufferStatus,
   // ✅ YENİ FONKSİYONLAR

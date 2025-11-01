@@ -1,4 +1,4 @@
-// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER + ÇİFT MENÜ KORUMASI + AKILLI BİRLEŞTİRME + GELİŞMİŞ KOMUT KONTROLÜ
+// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER + ÇİFT MENÜ KORUMASI + AKILLI BİRLEŞTİRME + GELİŞMİŞ KOMUT KONTROLÜ + 45 SANİYELİK AKILLI BEKLEME
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');
 const sessionRouter = require('./messageHandler/sessionRouter');
@@ -9,6 +9,9 @@ const { sendMessageWithoutQuote } = require('./utils/globalClient');
 
 // Global servis durumu değişkeni - basit çözüm
 let serviceFound = false;
+
+// ✅ YENİ: Akıllı Buffer Yönetimi için global değişkenler
+const userBufferStates = new Map();
 
 // Alıntısız mesaj gönderme yardımcı fonksiyonu
 async function sendReply(message, text) {
@@ -24,6 +27,87 @@ async function sendReply(message, text) {
       logger.error(`Fallback mesaj gönderme de başarısız: ${fallbackError.message}`);
     }
   }
+}
+
+// ✅ YENİ FONKSİYON: Akıllı Buffer State Yönetimi
+function getUserBufferState(userId) {
+  if (!userBufferStates.has(userId)) {
+    userBufferStates.set(userId, {
+      lastMessageTime: Date.now(),
+      messageCount: 0,
+      totalWaitTime: 0,
+      isWaitingForCompletion: false,
+      lastMessageLength: 0
+    });
+  }
+  return userBufferStates.get(userId);
+}
+
+// ✅ YENİ FONKSİYON: Akıllı Bekleme Süresi Hesaplama
+function calculateSmartWaitTime(message, userId) {
+  const bufferState = getUserBufferState(userId);
+  const now = Date.now();
+  const timeSinceLastMessage = now - bufferState.lastMessageTime;
+  const messageLength = message.length;
+  
+  console.log(`⏱️  AKILLI SÜRE HESAPLAMA: Mesaj=${messageLength}karakter, SonMesaj=${timeSinceLastMessage}ms önce, Sayı=${bufferState.messageCount}`);
+  
+  // 1. KADEME - Hızlı devam (kısa mesajlar, hızlı yazım)
+  if (timeSinceLastMessage < 5000 && messageLength < 25) {
+    // Kısa mesajlar hızlı geliyorsa 8 saniye bekle
+    return 8000;
+  }
+  
+  // 2. KADEME - Uzun mesaj tespiti
+  if (messageLength > 30 || bufferState.lastMessageLength > 30) {
+    // Uzun mesaj yazılıyorsa 20 saniye bekle
+    console.log(`📝 UZUN MESAJ TESPİTİ: 20sn bekle`);
+    return 20000;
+  }
+  
+  // 3. KADEME - Maksimum bekleme kontrolü
+  const remainingTime = 45000 - bufferState.totalWaitTime; // 45 saniye maksimum
+  if (remainingTime < 10000) {
+    // Maksimum süreye yaklaşıldı, kısa bekle
+    console.log(`⏰ MAKSİMUM SÜRE YAKLAŞTI: ${remainingTime}ms kaldı`);
+    return Math.max(5000, remainingTime);
+  }
+  
+  // 4. Varsayılan - Mesaj sayısına göre kademeli bekleme
+  const baseTime = bufferState.messageCount === 0 ? 15000 : 10000;
+  return Math.min(baseTime, remainingTime);
+}
+
+// ✅ YENİ FONKSİYON: Buffer State Güncelleme
+function updateBufferState(userId, message, waitTimeUsed = 0) {
+  const bufferState = getUserBufferState(userId);
+  const now = Date.now();
+  
+  bufferState.lastMessageTime = now;
+  bufferState.messageCount += 1;
+  bufferState.totalWaitTime += waitTimeUsed;
+  bufferState.lastMessageLength = message.length;
+  bufferState.isWaitingForCompletion = waitTimeUsed > 0;
+  
+  console.log(`🔄 BUFFER DURUM: Mesaj#${bufferState.messageCount}, ToplamBekleme=${bufferState.totalWaitTime}ms, SonUzunluk=${bufferState.lastMessageLength}`);
+  
+  // 45 saniyeyi geçtiyse resetle
+  if (bufferState.totalWaitTime >= 45000) {
+    console.log(`🔄 BUFFER RESET: 45sn maksimum süre doldu`);
+    resetBufferState(userId);
+  }
+}
+
+// ✅ YENİ FONKSİYON: Buffer State Reset
+function resetBufferState(userId) {
+  userBufferStates.set(userId, {
+    lastMessageTime: Date.now(),
+    messageCount: 0,
+    totalWaitTime: 0,
+    isWaitingForCompletion: false,
+    lastMessageLength: 0
+  });
+  console.log(`🔄 BUFFER SIFIRLANDI: ${userId}`);
 }
 
 // ✅ GELİŞTİRİLMİŞ ÖZEL KOMUT KONTROLÜ - KİŞİ İSİMLERİ BYPASS EKLENDİ
@@ -69,11 +153,12 @@ function isActiveProcessState(state) {
   return activeStates.some(activeState => state.includes(activeState));
 }
 
-// ✅ GELİŞTİRİLMİŞ BUFFER BİRLEŞTİRME KARARI - AKILLI ANALİZ
+// ✅ GÜNCELLENMİŞ BUFFER BİRLEŞTİRME KARARI - AKILLI ANALİZ
 function shouldCombineMessages(newMessage, existingBuffer, userId) {
   if (existingBuffer.length === 0) return false;
   
   const lastMessage = existingBuffer[existingBuffer.length - 1];
+  const bufferState = getUserBufferState(userId);
   
   console.log(`🔍 AKILLI KONU ANALİZİ: Son="${lastMessage}", Yeni="${newMessage}"`);
   
@@ -98,11 +183,9 @@ function shouldCombineMessages(newMessage, existingBuffer, userId) {
     lastMessage.endsWith('ki') || lastMessage.endsWith('da')
   );
   
-  // 2. ZAMANSAL YAKINLIK
-  const sessionManager = require('./sessionManager');
-  const session = sessionManager.getUserSession(userId);
-  const timeDiff = Date.now() - session.lastMessageTime;
-  const isRecentMessage = timeDiff < 10000; // 10 saniye
+  // 2. ZAMANSAL YAKINLIK - Akıllı buffer durumuna göre
+  const timeDiff = Date.now() - bufferState.lastMessageTime;
+  const isRecentMessage = timeDiff < 8000; // 8 saniye
   
   // 3. MESAJ YAPISI ANALİZİ
   const isShortResponse = newMessage.split(' ').length <= 5;
@@ -166,6 +249,9 @@ function checkServiceFound() {
 async function processCombinedMessage(message, combinedMessage, contactInfo) {
   console.log(`🎯 Birleştirilmiş mesaj işleniyor: "${combinedMessage}"`);
   
+  // Buffer state reset
+  resetBufferState(message.from);
+  
   // 1. Mesajı ayrıştır
   const parsedMessage = messageParser.parseMessage(combinedMessage);
   
@@ -205,7 +291,7 @@ async function processCombinedMessage(message, combinedMessage, contactInfo) {
   }
 }
 
-// ✅ GELİŞTİRİLMİŞ ANA MESAJ İŞLEME FONKSİYONU
+// ✅ GELİŞTİRİLMİŞ ANA MESAJ İŞLEME FONKSİYONU - 45 SANİYELİK AKILLI SİSTEM
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -244,6 +330,9 @@ async function handleMessage(message) {
     if (isActiveProcessState(session.currentState)) {
       console.log(`⚡ Aktif işlem tespit edildi - Buffer bypass: ${session.currentState}`);
       
+      // Buffer state güncelle (ama bekleme yapma)
+      updateBufferState(message.from, validationResult.messageBody, 0);
+      
       // Mesajı hemen işle
       await processCombinedMessage(message, validationResult.messageBody, contactInfo);
       return;
@@ -253,6 +342,9 @@ async function handleMessage(message) {
     const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
     if (isSpecialCommand) {
       console.log(`⚡ Özel komut tespit edildi - Buffer bypass: "${validationResult.messageBody}"`);
+      
+      // Buffer state güncelle (ama bekleme yapma)
+      updateBufferState(message.from, validationResult.messageBody, 0);
       
       // Mesajı hemen işle
       await processCombinedMessage(message, validationResult.messageBody, contactInfo);
@@ -266,12 +358,18 @@ async function handleMessage(message) {
     const bufferStatus = sessionManager.getBufferStatus(message.from);
     console.log(`📥 Buffer'a eklendi: ${bufferStatus.bufferSize} mesaj -> "${bufferStatus.bufferContent}"`);
     
+    // ✅ YENİ: Akıllı bekleme süresi hesapla
+    const smartWaitTime = calculateSmartWaitTime(validationResult.messageBody, message.from);
+    
     // 8. Akıllı buffer birleştirme kararı
     const shouldCombine = shouldCombineMessages(validationResult.messageBody, session.messageBuffer, message.from);
     
-    // Eğer buffer'da 1 mesaj varsa ve birleştirme gerekmiyorsa, timer'ı bekleyelim
+    // Eğer buffer'da 1 mesaj varsa ve birleştirme gerekmiyorsa, akıllı timer'ı bekleyelim
     if (!isSpecialCommand && bufferStatus.bufferSize === 1 && !shouldCombine) {
-      console.log(`⏰ İlk mesaj, optimize süre bekleniyor...`);
+      console.log(`⏰ AKILLI BEKLEME: ${smartWaitTime}ms bekleniyor...`);
+      
+      // Buffer state güncelle (bekleme süresini kaydet)
+      updateBufferState(message.from, validationResult.messageBody, smartWaitTime);
       return; // Timer bitene kadar bekle
     }
     
@@ -306,6 +404,9 @@ async function processImmediateCommand(message, command) {
   // Timer'ları durdur
   sessionManager.stopMenuGoodbyeTimer(message.from);
   sessionManager.stopHelpTimer(message.from);
+  
+  // Buffer state reset
+  resetBufferState(message.from);
   
   // Komutu hemen işle
   await processCombinedMessage(message, command, contactInfo);

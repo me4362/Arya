@@ -1,4 +1,4 @@
-// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER EKLENDİ
+// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER EKLENDİ + ÇİFT MENÜ KORUMASI
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');
 const sessionRouter = require('./messageHandler/sessionRouter');
@@ -199,9 +199,6 @@ async function handleMessage(message) {
     // ✅ DEĞİŞTİ: Kullanıcı mesaj gönderdiğinde MENÜ TIMER'INI DURDUR
     sessionManager.stopMenuGoodbyeTimer(message.from);
     
-    // ✅ KALDIR: Çift timer başlatma - ESKİ KOD
-    // startHelpTimer(message); // BU SATIR KALDIRILDI
-    
     // ✅ YENİ: Sadece yardım timer'ını durdur (mevcut sistemle uyumluluk)
     sessionManager.stopHelpTimer(message.from);
     
@@ -246,7 +243,7 @@ async function handleMessage(message) {
       return; // Timer bitene kadar bekle
     }
     
-    // Özel komutlar, 2+ mesaj veya birleştirme gerekliyse hemen işle
+    // Özel komutlar, 2+ mesaj veya birleştirme gerekliyese hemen işle
     if (isSpecialCommand || bufferStatus.bufferSize > 1 || shouldCombine) {
       // Buffer'ı hemen işle
       const combinedMessage = sessionManager.processMessageBuffer(message.from);

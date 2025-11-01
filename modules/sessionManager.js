@@ -22,8 +22,7 @@ function createUserSession(userId) {
     messageBuffer: [],
     messageTimer: null,
     lastMessageTime: Date.now(),
-    isProcessingBuffer: false,
-    bufferTotalWaitTime: 0 // ✅ YENİ: Toplam bekleme süresi takibi
+    isProcessingBuffer: false
   };
   
   userSessions.set(userId, session);
@@ -50,7 +49,6 @@ function getUserSession(userId) {
   return session;
 }
 
-// ✅ GÜNCELLENDİ: BUFFER FONKSİYONU - MESSAGEHANDLER İLE UYUMLU
 function addToMessageBuffer(userId, message) {
   const session = getUserSession(userId);
   const now = Date.now();
@@ -63,33 +61,15 @@ function addToMessageBuffer(userId, message) {
   if (session.messageTimer) {
     clearTimeout(session.messageTimer);
   }
-
-  // ✅ GÜNCELLENDİ: MessageHandler'dan gelen akıllı süre beklenecek
-  // Burada sadece minimum güvenlik süresi uyguluyoruz
-  const minWaitTime = 3000; // Minimum güvenlik süresi
   
+  // ✅ DEĞİŞTİ: 10 saniye → 7 saniye (diğer timer'lar etkilenmez)
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
-  }, minWaitTime);
-  
-  console.log(`⏰ Buffer timer başlatıldı: ${minWaitTime}ms - Mesaj: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`);
+  }, 7000); // 7 saniye
   
   return session.messageBuffer;
 }
 
-// ✅ YENİ FONKSİYON: Manuel Buffer İşleme (MessageHandler için)
-function processMessageBufferImmediately(userId) {
-  const session = getUserSession(userId);
-  
-  if (session.messageTimer) {
-    clearTimeout(session.messageTimer);
-    session.messageTimer = null;
-  }
-  
-  return processMessageBuffer(userId);
-}
-
-// ✅ GÜNCELLENDİ: BUFFER İŞLEME - TOPLAM SÜRE TAKİBİ
 function processMessageBuffer(userId) {
   const session = getUserSession(userId);
   
@@ -100,109 +80,13 @@ function processMessageBuffer(userId) {
   session.isProcessingBuffer = true;
   
   const combinedMessage = session.messageBuffer.join(' ');
-  
-  // ✅ YENİ: Buffer istatistikleri
-  const bufferDuration = Date.now() - session.lastMessageTime;
-  session.bufferTotalWaitTime += bufferDuration;
-  
   console.log(`🔄 Buffer işleniyor: "${combinedMessage}" - Kullanıcı: ${userId}`);
-  console.log(`📊 Buffer istatistik: ${session.messageBuffer.length} mesaj, ${bufferDuration}ms beklendi, Toplam: ${session.bufferTotalWaitTime}ms`);
   
   session.messageBuffer = [];
   session.messageTimer = null;
   session.isProcessingBuffer = false;
   
   return combinedMessage;
-}
-
-// ✅ YENİ FONKSİYON: Buffer Süresi Optimizasyonu (MessageHandler için destek)
-function calculateOptimalWaitTime(message, session) {
-  const messageLength = message.length;
-  const hasQuestion = message.includes('?') || message.includes('mı?') || message.includes('mi?');
-  const hasUrgentWords = hasUrgentKeywords(message);
-  const isQuickResponse = hasQuickResponsePattern(message);
-  const bufferSize = session.messageBuffer.length;
-  
-  let baseTime = 10000; // Varsayılan 10 saniye
-  
-  // 📝 MESAJ UZUNLUĞUNA GÖRE OPTİMİZASYON
-  if (messageLength < 15) {
-    baseTime = 5000; // Çok kısa mesajlar: 5 saniye
-  } else if (messageLength < 30) {
-    baseTime = 7000; // Kısa mesajlar: 7 saniye
-  } else if (messageLength > 100) {
-    baseTime = 4000; // Çok uzun mesajlar: 4 saniye (hızlı işle)
-  } else if (messageLength > 50) {
-    baseTime = 6000; // Uzun mesajlar: 6 saniye
-  }
-  
-  // ❓ SORU VARSA DAHA HIZLI
-  if (hasQuestion) {
-    baseTime = Math.min(baseTime, 6000);
-    
-    // Acil sorular için ekstra hız
-    if (hasUrgentWords) {
-      baseTime = Math.min(baseTime, 4000);
-    }
-  }
-  
-  // 🚀 HIZLI YANIT GEREKTİREN MESAJLAR
-  if (isQuickResponse) {
-    baseTime = Math.min(baseTime, 5000);
-  }
-  
-  // 📊 BUFFER DOLULUĞUNA GÖRE AYARLAMA
-  if (bufferSize > 0) {
-    // Buffer'da mesaj varsa biraz daha hızlı işle
-    baseTime = Math.max(3000, baseTime - (bufferSize * 500));
-  }
-  
-  // ⚡ MESAJ TİPİNE GÖRE İNCE AYAR
-  if (hasEmojisOnly(message) || isConfirmationMessage(message)) {
-    baseTime = 4000; // Emoji/onay mesajları: 4 saniye
-  }
-  
-  // 🛡️ MİNİMUM VE MAKSİMUM SÜRE KONTROLÜ
-  return Math.max(2000, Math.min(baseTime, 15000)); // 2-15 saniye arası
-}
-
-// ✅ YARDIMCI FONKSİYONLAR
-function hasUrgentKeywords(message) {
-  const urgentWords = [
-    'acil', 'acele', 'hemen', 'lütfen', 'yardım', 'problem', 'sorun', 
-    'hata', 'çalışmıyor', 'yetki', 'kritik', 'important', 'urgent',
-    'bekliyorum', 'cevap', 'yanıt', 'ne zaman', 'kaç para', 'fiyat'
-  ];
-  
-  const lowerMessage = message.toLowerCase();
-  return urgentWords.some(word => lowerMessage.includes(word));
-}
-
-function hasQuickResponsePattern(message) {
-  const quickPatterns = [
-    'selam', 'merhaba', 'hello', 'hi', 'günaydın', 'iyi günler',
-    'evet', 'hayır', 'tamam', 'ok', 'okey', '👍', '👋',
-    'sağol', 'teşekkür', 'thanks', 'thank you'
-  ];
-  
-  const lowerMessage = message.toLowerCase();
-  return quickPatterns.some(pattern => lowerMessage.includes(pattern));
-}
-
-function hasEmojisOnly(message) {
-  // Sadece emoji içeren mesajları tespit et
-  const emojiRegex = /^(?:[\p{Emoji}\u200d\uFE0F\s]|[+-])+$/u;
-  return emojiRegex.test(message.trim()) && message.length <= 10;
-}
-
-function isConfirmationMessage(message) {
-  const confirmations = [
-    'evet', 'hayır', 'tamam', 'old', 'olur', 'yok', 'var',
-    'doğru', 'yanlış', 'kesin', 'belki', 'tabi', 'elbette'
-  ];
-  
-  const lowerMessage = message.toLowerCase().trim();
-  return confirmations.includes(lowerMessage) || lowerMessage.length <= 3;
 }
 
 function clearMessageBuffer(userId) {
@@ -215,7 +99,6 @@ function clearMessageBuffer(userId) {
   
   session.messageBuffer = [];
   session.isProcessingBuffer = false;
-  session.bufferTotalWaitTime = 0; // ✅ YENİ: Toplam süre sıfırlandı
   
   console.log(`🧹 Buffer temizlendi - Kullanıcı: ${userId}`);
 }
@@ -227,43 +110,41 @@ function getBufferStatus(userId) {
     bufferSize: session.messageBuffer.length,
     isProcessing: session.isProcessingBuffer,
     lastMessageTime: session.lastMessageTime,
-    bufferTotalWaitTime: session.bufferTotalWaitTime, // ✅ YENİ: Toplam bekleme süresi
     bufferContent: session.messageBuffer.join(' ')
   };
 }
 
-// ✅ GÜNCELLENDİ: HELP TIMER - MESSAGEHANDLER İLE UYUMLU
 function startHelpTimer(userId, message, services) {
   const session = getUserSession(userId);
-  
-  // Önceki timer'ları temizle
-  if (session.helpTimer) {
+  if (session && session.helpTimer) {
     clearTimeout(session.helpTimer);
   }
-  if (session.goodbyeTimer) {
+  if (session && session.goodbyeTimer) {
     clearTimeout(session.goodbyeTimer);
   }
 
   console.log(`⏰ Yardım timer başlatıldı - Kullanıcı: ${userId}`);
 
-  // 1. Timer: 3 dakika sonra menüyü göster
+  // ✅ DEĞİŞMEDİ: 3 dakika (180000 ms)
   const helpTimer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
-    console.log(`⏰ Yardım zaman aşımı - Menü gösteriliyor: ${userId}`);
-    
-    const menuHandler = require('./menuHandler');
-    await menuHandler.showMainMenu(message, services);
-    
-    // 2. Timer: 3 dakika sonra vedalaşma (toplam 6 dakika)
-    const goodbyeTimer = setTimeout(async () => {
-      console.log(`⏰ Vedalaşma zaman aşımı - Kullanıcı: ${userId}`);
-      await handleGoodbye(message);
-    }, 3 * 60 * 1000);
-    
-    updateUserSession(userId, { 
-      goodbyeTimer: goodbyeTimer
-    });
-    
+    if (currentSession && currentSession.waitingForHelp) {
+      console.log(`⏰ Yardım zaman aşımı - Menü gösteriliyor: ${userId}`);
+      
+      const menuHandler = require('./menuHandler');
+      await menuHandler.showMainMenu(message, services);
+      
+      // ✅ DEĞİŞMEDİ: 3 dakika (180000 ms)
+      const goodbyeTimer = setTimeout(async () => {
+        await handleGoodbye(message);
+      }, 3 * 60 * 1000);
+      
+      updateUserSession(userId, { 
+        waitingForHelp: false, 
+        helpTimer: null,
+        goodbyeTimer: goodbyeTimer
+      });
+    }
   }, 3 * 60 * 1000);
 
   updateUserSession(userId, { 
@@ -272,121 +153,22 @@ function startHelpTimer(userId, message, services) {
   });
 }
 
-// ✅ YENİ FONKSİYON: 6 dakika menü vedalaşma timer'ı
-function startMenuGoodbyeTimer(userId, message) {
-  const session = getUserSession(userId);
-  
-  // Önceki timer'ları temizle
-  if (session.menuTimer) {
-    clearTimeout(session.menuTimer);
-  }
-
-  console.log(`⏰ Menü vedalaşma timer başlatıldı (6 dakika) - Kullanıcı: ${userId}`);
-
-  // 6 dakika sonra direkt vedalaşma
-  const menuTimer = setTimeout(async () => {
-    console.log(`⏰ 6 dakika zaman aşımı - Vedalaşma: ${userId}`);
-    await handleGoodbye(message);
-  }, 6 * 60 * 1000); // 6 dakika
-
-  updateUserSession(userId, { 
-    menuTimer: menuTimer
-  });
-}
-
-// ✅ YENİ FONKSİYON: Menü timer'ını durdur
-function stopMenuGoodbyeTimer(userId) {
-  const session = getUserSession(userId);
-  if (session && session.menuTimer) {
-    clearTimeout(session.menuTimer);
-    updateUserSession(userId, { 
-      menuTimer: null
-    });
-    console.log(`⏰ Menü timer durduruldu - Kullanıcı: ${userId}`);
-  }
-}
-
-// ✅ GÜNCELLENDİ: VEDALAŞMA FONKSİYONU - BUFFER TEMİZLEME EKLENDİ
 async function handleGoodbye(message) {
-  try {
-    const serviceLoader = require('./serviceLoader');
-    const greetings = serviceLoader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
-    
-    // Türkiye saat dilimine göre saat bilgisi
-    const now = new Date();
-    const turkiyeSaati = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Istanbul"}));
-    const saat = turkiyeSaati.getHours();
-    
-    let goodbyeMsg = '';
-    
-    // JSON'daki vedalaşma mesajlarını kullan
-    if (greetings?.vedalasma?.hoscakal) {
-      // Rastgele bir vedalaşma mesajı seç
-      const randomIndex = Math.floor(Math.random() * greetings.vedalasma.hoscakal.length);
-      goodbyeMsg = greetings.vedalasma.hoscakal[randomIndex];
-      
-      // Saate göre emoji ve kişiselleştirme ekle
-      let timeEmoji = '👋';
-      let timeContext = '';
-      
-      if (saat >= 6 && saat < 12) {
-        // SABAH
-        timeEmoji = '☀️';
-        timeContext = ' Güneşli ve verimli bir gün geçirmenizi dileriz!';
-      } else if (saat >= 12 && saat < 18) {
-        // ÖĞLEN
-        timeEmoji = '🌞'; 
-        timeContext = ' Verimli bir gün geçirmenizi dileriz!';
-      } else if (saat >= 18 && saat < 23) {
-        // AKŞAM
-        timeEmoji = '🌙';
-        timeContext = ' Huzurlu bir akşam geçirmenizi dileriz!';
-      } else {
-        // GECE
-        timeEmoji = '🌙';
-        timeContext = ' Huzurlu bir gece geçirmenizi dileriz!';
-      }
-      
-      // Mesajı kişiselleştir
-      goodbyeMsg = goodbyeMsg.replace('👋', timeEmoji);
-      if (!goodbyeMsg.includes('PlanB Global Network Ltd Şti')) {
-        goodbyeMsg += timeContext;
-      }
-    } else {
-      // Fallback mesaj
-      goodbyeMsg = '👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!';
-    }
-    
-    // ✅ DEĞİŞTİ: Alıntısız mesaj gönderme
-    const { sendMessageWithoutQuote } = require('./utils/globalClient');
-    await sendMessageWithoutQuote(message.from, goodbyeMsg);
-    
-    console.log(`👋 Vedalaşma mesajı gönderildi (Saat: ${saat}:00) - Kullanıcı: ${message.from}`);
-    
-    // ✅ YENİ: Oturumu temizlemeden önce buffer'ı temizle
-    clearMessageBuffer(message.from);
-    
-    // Oturumu temizle
-    updateUserSession(message.from, {
-      currentState: 'main_menu',
-      waitingForHelp: false,
-      helpTimer: null,
-      goodbyeTimer: null,
-      menuTimer: null,
-      bufferTotalWaitTime: 0
-    });
-    
-  } catch (error) {
-    console.log(`❌ Vedalaşma mesajı hatası: ${error.message}`);
-    // Fallback mesaj - yine alıntısız
-    try {
-      const { sendMessageWithoutQuote } = require('./utils/globalClient');
-      await sendMessageWithoutQuote(message.from, '👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
-    } catch (fallbackError) {
-      // Son çare: normal reply
-      await message.reply('👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
-    }
-  }
+  const serviceLoader = require('./serviceLoader');
+  const greetings = serviceLoader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
+  const goodbyeMsg = greetings?.vedalasma?.hoscakal?.[0] || 
+                    'Hoşça kalın! PlanB Global Network Ltd Şti adına iyi günler dilerim.';
+  
+  await message.reply(goodbyeMsg);
+  
+  console.log(`👋 Vedalaşma mesajı gönderildi - Kullanıcı: ${message.from}`);
+  
+  updateUserSession(message.from, {
+    currentState: 'main_menu',
+    waitingForHelp: false,
+    helpTimer: null,
+    goodbyeTimer: null
+  });
 }
 
 function stopHelpTimer(userId) {
@@ -414,6 +196,7 @@ function startMenuTimer(userId, message, services) {
     clearTimeout(session.menuTimer);
   }
 
+  // ✅ DEĞİŞMEDİ: 60 saniye (60000 ms)
   const timer = setTimeout(async () => {
     const currentSession = getUserSession(userId);
     if (currentSession && currentSession.waitingForResponse) {
@@ -465,9 +248,7 @@ function clearAllSessions() {
 function listActiveSessions() {
   console.log(`📊 Aktif oturumlar: ${userSessions.size}`);
   userSessions.forEach((session, userId) => {
-    const bufferInfo = session.messageBuffer.length > 0 ? 
-      ` (${session.messageBuffer.length} mesaj buffer'da)` : '';
-    console.log(`  👤 ${userId}: ${session.currentState}${bufferInfo}`);
+    console.log(`  👤 ${userId}: ${session.currentState}`);
   });
 }
 
@@ -486,14 +267,6 @@ module.exports = {
   listActiveSessions,
   addToMessageBuffer,
   processMessageBuffer,
-  processMessageBufferImmediately, // ✅ YENİ: Manuel buffer işleme
   clearMessageBuffer,
-  getBufferStatus,
-  // ✅ YENİ FONKSİYONLAR
-  startMenuGoodbyeTimer,
-  stopMenuGoodbyeTimer,
-  // ✅ OPTİMİZASYON FONKSİYONLARI (iç kullanım için)
-  calculateOptimalWaitTime,
-  hasUrgentKeywords,
-  hasQuickResponsePattern
+  getBufferStatus
 };

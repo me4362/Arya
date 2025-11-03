@@ -1,4 +1,4 @@
-// modules/messageHandler.js - BASİTLEŞTİRİLMİŞ VERSİYON (BUFFER BYPASS'LAR KALDIRILDI)
+// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER EKLENDİ
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');
 const sessionRouter = require('./messageHandler/sessionRouter');
@@ -67,51 +67,111 @@ function checkServiceFound() {
   return serviceFound;
 }
 
-// ✅ YENİ FONKSİYON: Manuel buffer işleme
-async function processUserMessageBuffer(userId, message) {
-  try {
-    const sessionManager = require('./sessionManager');
-    const combinedMessage = sessionManager.forceProcessBuffer(userId);
+// ✅ YENİ FONKSİYON: Özel komut kontrolü
+function isImmediateCommand(message) {
+  const immediateCommands = [
+    'menü', 'menu', 'yardım', 'yardim', 'help', 
+    'çıkış', 'çıkıs', 'exit', 'geri', 'back',
+    'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', // Sayılar
+    'evet', 'hayır', 'tamam', 'ok' // Hızlı cevaplar
+  ];
+  
+  const cleanMessage = message.toLowerCase().trim();
+  return immediateCommands.some(cmd => cleanMessage.includes(cmd));
+}
+
+// ✅ YENİ FONKSİYON: Aktif işlem durumunu kontrol et
+function isActiveProcessState(state) {
+  const activeStates = [
+    'waiting_for_service',
+    'waiting_for_response', 
+    'service_flow',
+    'question_flow',
+    'collecting_info',
+    'processing_order'
+  ];
+  
+  return activeStates.some(activeState => state.includes(activeState));
+}
+
+// ✅ YENİ FONKSİYON: Akıllı buffer birleştirme kararı
+function shouldCombineMessages(newMessage, existingBuffer) {
+  if (existingBuffer.length === 0) return false;
+  
+  const lastMessage = existingBuffer[existingBuffer.length - 1];
+  const combinedText = existingBuffer.join(' ') + ' ' + newMessage;
+  
+  console.log(`🔍 Buffer analizi: Son mesaj="${lastMessage}", Yeni="${newMessage}"`);
+  
+  // 1. Kısa mesajlar hemen birleştirilsin (sohbet devamı)
+  const isShortSequence = newMessage.length < 20 && lastMessage.length < 20;
+  
+  // 2. Noktalama ile bitiyorsa veya başlıyorsa birleştir
+  const hasPunctuationContinuation = (
+    lastMessage.endsWith('.') || 
+    lastMessage.endsWith(',') ||
+    newMessage.startsWith('ve ') ||
+    newMessage.startsWith('ama ') ||
+    newMessage.startsWith('sonra ') ||
+    newMessage.startsWith('yani ')
+  );
+  
+  // 3. Aynı konu devam ediyorsa birleştir
+  const commonTopics = ['sigorta', 'fiyat', 'ücret', 'kasko', 'trafik', 'yeşil', 'yesil', 'hizmet', 'yardım'];
+  const hasCommonTopic = commonTopics.some(topic => 
+    lastMessage.toLowerCase().includes(topic) && newMessage.toLowerCase().includes(topic)
+  );
+  
+  // 4. Toplam karakter sınırı (çok uzun olmasın)
+  const isWithinLengthLimit = combinedText.length < 200;
+  
+  const shouldCombine = (isShortSequence || hasPunctuationContinuation || hasCommonTopic) && isWithinLengthLimit;
+  
+  console.log(`📊 Birleştirme kararı: Kısa=${isShortSequence}, Noktalama=${hasPunctuationContinuation}, Konu=${hasCommonTopic}, Uzunluk=${isWithinLengthLimit} → ${shouldCombine ? 'BİRLEŞTİR' : 'BEKLE'}`);
+  
+  return shouldCombine;
+}
+
+// ✅ YENİ FONKSİYON: Birleştirilmiş mesajı işle
+async function processCombinedMessage(message, combinedMessage, contactInfo) {
+  console.log(`🎯 Birleştirilmiş mesaj işleniyor: "${combinedMessage}"`);
+  
+  // 1. Mesajı ayrıştır
+  const parsedMessage = messageParser.parseMessage(combinedMessage);
+  
+  console.log(`📝 Birleştirilmiş mesaj ayrıştırma: Orijinal="${combinedMessage}", Selamlama="${parsedMessage.greetingPart}", İşlem="${parsedMessage.servicePart}"`);
+  
+  // 2. Kullanıcı cevap verdiğinde tüm timer'ları durdur
+  const sessionManager = require('./sessionManager');
+  sessionManager.stopHelpTimer(message.from);
+  sessionManager.stopMenuTimer(message.from);
+  sessionManager.stopMenuGoodbyeTimer(message.from); // ✅ YENİ: Menü timer'ını durdur
+  
+  // 3. Oturum durumuna göre yönlendir
+  await sessionRouter.route(message, parsedMessage, contactInfo.name, () => {
+    // Callback: servis bulunduğunda çağrılacak
+    serviceFound = true;
+    console.log('✅ Servis bulundu - Kurumsal mesaj atlanacak');
+  });
+  
+  // ✅ YENİ: Eğer modüler sistem servis bulamazsa, KURUMSAL RED MESAJI gönder
+  if (!serviceFound) {
+    console.log('🚫 Servis bulunamadı, kurumsal red mesajı gönderiliyor...');
     
-    if (combinedMessage) {
-      console.log(`🎯 Manuel buffer işleme: "${combinedMessage}" - Kullanıcı: ${userId}`);
-      
-      // Müşteri bilgilerini al
-      const contactInfo = await contactManager.logContactInteraction(message, 'Buffer işlendi');
-      
-      // Mesajı ayrıştır
-      const parsedMessage = messageParser.parseMessage(combinedMessage);
-      
-      console.log(`📝 Manuel ayrıştırma: Orijinal="${combinedMessage}", Selamlama="${parsedMessage.greetingPart}", İşlem="${parsedMessage.servicePart}"`);
-      
-      // Oturum durumuna göre yönlendir
-      await sessionRouter.route(message, parsedMessage, contactInfo.name, () => {
-        serviceFound = true;
-        console.log('✅ Servis bulundu - Manuel işleme');
-      });
-      
-      // Eğer modüler sistem servis bulamazsa, KURUMSAL RED MESAJI gönder
-      if (!serviceFound) {
-        console.log('🚫 Servis bulunamadı, kurumsal red mesajı gönderiliyor...');
-        
-        const serviceRequest = parsedMessage.servicePart || combinedMessage;
-        await sendServiceNotAvailable(message, serviceRequest);
-        
-        // Ana menüye dön - 30 SANİYE BEKLE
-        setTimeout(async () => {
-          const serviceLoader = require('./serviceLoader');
-          const menuHandler = require('./menuHandler');
-          await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
-        }, 30000);
-      }
-    }
-  } catch (error) {
-    console.log(`❌ Manuel buffer işleme hatası: ${error.message}`);
-    await errorHandler.handleError(message, error);
+    const serviceRequest = parsedMessage.servicePart || combinedMessage;
+    await sendServiceNotAvailable(message, serviceRequest);
+    
+    // Ana menüye dön - 30 SANİYE BEKLE
+    setTimeout(async () => {
+      const serviceLoader = require('./serviceLoader');
+      const menuHandler = require('./menuHandler');
+      await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
+    }, 30000); // 30 saniye
   }
 }
 
-// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - TÜM BYPASS'LAR KALDIRILDI
+// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - MENÜ TIMER DURDURMA EKLENDİ
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -136,10 +196,13 @@ async function handleMessage(message) {
     console.log(`🔍 Oturum durumu: ${session.currentState}, Mesaj: "${validationResult.messageBody}"`);
     console.log(`📊 Buffer durumu: ${session.messageBuffer.length} mesaj, İşleniyor: ${session.isProcessingBuffer}`);
     
-    // ✅ DEĞİŞİKLİK: Kullanıcı mesaj gönderdiğinde MENÜ TIMER'INI DURDUR
+    // ✅ DEĞİŞTİ: Kullanıcı mesaj gönderdiğinde MENÜ TIMER'INI DURDUR
     sessionManager.stopMenuGoodbyeTimer(message.from);
     
-    // ✅ DEĞİŞİKLİK: Yardım timer'ını durdur (mevcut sistemle uyumluluk)
+    // ✅ KALDIR: Çift timer başlatma - ESKİ KOD
+    // startHelpTimer(message); // BU SATIR KALDIRILDI
+    
+    // ✅ YENİ: Sadece yardım timer'ını durdur (mevcut sistemle uyumluluk)
     sessionManager.stopHelpTimer(message.from);
     
     // 4. Buffer kontrolü - eğer buffer işleniyorsa bekle
@@ -148,14 +211,51 @@ async function handleMessage(message) {
       return;
     }
     
-    // ✅✅✅ DEĞİŞİKLİK: TÜM MESAJLAR BUFFER'A EKLENECEK - HİÇBİR BYPASS YOK
+    // 5. AKTİF İŞLEM BYPASS - Eğer kullanıcı aktif işlem yapıyorsa buffer'ı atla
+    if (isActiveProcessState(session.currentState)) {
+      console.log(`⚡ Aktif işlem tespit edildi - Buffer bypass: ${session.currentState}`);
+      
+      // Mesajı hemen işle
+      await processCombinedMessage(message, validationResult.messageBody, contactInfo);
+      return;
+    }
+    
+    // 6. Özel komut bypass - Hemen işle
+    const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
+    if (isSpecialCommand) {
+      console.log(`⚡ Özel komut tespit edildi - Buffer bypass: "${validationResult.messageBody}"`);
+      
+      // Mesajı hemen işle
+      await processCombinedMessage(message, validationResult.messageBody, contactInfo);
+      return;
+    }
+    
+    // 7. Buffer'a mesaj ekle
     sessionManager.addToMessageBuffer(message.from, validationResult.messageBody);
     
+    // Buffer durumunu kontrol et
     const bufferStatus = sessionManager.getBufferStatus(message.from);
     console.log(`📥 Buffer'a eklendi: ${bufferStatus.bufferSize} mesaj -> "${bufferStatus.bufferContent}"`);
     
-    // ✅✅✅ DEĞİŞİKLİK: HİÇBİR MESAJ HEMEN İŞLENMEYECEK - SADECE TIMER BİTİNCE İŞLENECEK
-    console.log(`⏰ Mesaj buffer'da bekletiliyor (${bufferStatus.bufferSize} mesaj)...`);
+    // 8. Akıllı buffer birleştirme kararı
+    const shouldCombine = shouldCombineMessages(validationResult.messageBody, session.messageBuffer);
+    
+    // Eğer buffer'da 1 mesaj varsa ve birleştirme gerekmiyorsa, timer'ı bekleyelim
+    if (!isSpecialCommand && bufferStatus.bufferSize === 1 && !shouldCombine) {
+      console.log(`⏰ İlk mesaj, 7 saniye bekleniyor...`);
+      return; // Timer bitene kadar bekle
+    }
+    
+    // Özel komutlar, 2+ mesaj veya birleştirme gerekliyse hemen işle
+    if (isSpecialCommand || bufferStatus.bufferSize > 1 || shouldCombine) {
+      // Buffer'ı hemen işle
+      const combinedMessage = sessionManager.processMessageBuffer(message.from);
+      
+      if (combinedMessage) {
+        console.log(`🔄 Buffer işlendi: "${combinedMessage}"`);
+        await processCombinedMessage(message, combinedMessage, contactInfo);
+      }
+    }
     
   } catch (error) {
     console.log(`❌ Mesaj işleme hatası: ${error.message}`);
@@ -170,53 +270,6 @@ async function handleMessage(message) {
   }
 }
 
-// ✅ YENİ FONKSİYON: Özel durumlar için manuel işleme (menü, yardım vb.)
-async function handleImmediateCommand(message, command) {
-  try {
-    console.log(`⚡ Özel komut işleniyor: "${command}" - Kullanıcı: ${message.from}`);
-    
-    const sessionManager = require('./sessionManager');
-    
-    // Buffer'ı temizle ve timer'ı durdur
-    sessionManager.clearMessageBuffer(message.from);
-    sessionManager.stopMenuGoodbyeTimer(message.from);
-    sessionManager.stopHelpTimer(message.from);
-    
-    // Özel komutları işle
-    const cleanCommand = command.toLowerCase().trim();
-    
-    if (cleanCommand.includes('menü') || cleanCommand.includes('menu') || cleanCommand === '0') {
-      const serviceLoader = require('./serviceLoader');
-      const menuHandler = require('./menuHandler');
-      await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
-      return true;
-    }
-    
-    if (cleanCommand.includes('yardım') || cleanCommand.includes('yardim') || cleanCommand.includes('help')) {
-      await sendReply(message, `🆘 *Yardım Merkezi*\n\n` +
-        `• *"menü"* yazarak tüm hizmetlerimizi görebilirsiniz\n` +
-        `• *"0"* yazarak ana menüye dönebilirsiniz\n` +
-        `• İstediğiniz hizmeti yazarak doğrudan ulaşabilirsiniz\n\n` +
-        `📍 Örnek: "sigorta", "yazılım", "lojistik"`);
-      return true;
-    }
-    
-    if (cleanCommand.includes('iptal') || cleanCommand.includes('cancel') || cleanCommand.includes('çıkış') || cleanCommand.includes('çıkıs')) {
-      await sendReply(message, `👋 İşleminiz iptal edildi. Ana menüye yönlendiriliyorsunuz...`);
-      
-      const serviceLoader = require('./serviceLoader');
-      const menuHandler = require('./menuHandler');
-      await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
-      return true;
-    }
-    
-    return false;
-  } catch (error) {
-    console.log(`❌ Özel komut işleme hatası: ${error.message}`);
-    return false;
-  }
-}
-
 module.exports = {
   handleMessage,
   sendReply,
@@ -228,8 +281,10 @@ module.exports = {
   findMatchingService: require('./messageHandler/serviceMatcher').findMatchingService,
   createPersonalizedGreeting: require('./messageHandler/personalization').createPersonalizedGreeting,
   
-  // ✅ YENİ/GÜNCELLENMİŞ FONKSİYONLAR
+  // ✅ YENİ FONKSİYONLAR
   sendServiceNotAvailable,
-  processUserMessageBuffer,
-  handleImmediateCommand
+  isImmediateCommand,
+  isActiveProcessState,
+  shouldCombineMessages,
+  processCombinedMessage
 };

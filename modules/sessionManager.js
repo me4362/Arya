@@ -1,4 +1,5 @@
 const logger = require('./logger');
+const { sendMessageWithoutQuote } = require('./utils/globalClient');
 
 const userSessions = new Map();
 
@@ -49,6 +50,32 @@ function getUserSession(userId) {
   return session;
 }
 
+// ✅ YENİ: Kurumsal karşılama mesajı
+async function sendCorporateGreeting(userId, userMessage) {
+  try {
+    const greeting = `🏢 *PlanB Global Network Ltd*'ye hoş geldiniz!\n\n` +
+                    `📍 Mesajınız: "${userMessage}"\n\n` +
+                    `🛎️ Size nasıl yardımcı olabilirim? Lütfen ihtiyacınız olan hizmeti belirtin:\n\n` +
+                    `• Sigorta hizmetleri\n` +
+                    `• Yazılım geliştirme\n` +
+                    `• Lojistik hizmetleri\n` +
+                    `• Diğer profesyonel hizmetler\n\n` +
+                    `ℹ️ *"menü"* yazarak tüm hizmetlerimizi görebilirsiniz.`;
+    
+    await sendMessageWithoutQuote(userId, greeting);
+    console.log(`🏢 Kurumsal karşılama gönderildi: ${userId}`);
+  } catch (error) {
+    console.error(`❌ Kurumsal karşılama hatası: ${error.message}`);
+    // Fallback: normal mesaj gönderme
+    try {
+      const message = { from: userId };
+      await message.reply(greeting);
+    } catch (fallbackError) {
+      console.error(`❌ Fallback mesaj gönderme hatası: ${fallbackError.message}`);
+    }
+  }
+}
+
 function addToMessageBuffer(userId, message) {
   const session = getUserSession(userId);
   const now = Date.now();
@@ -58,17 +85,20 @@ function addToMessageBuffer(userId, message) {
   session.messageBuffer.push(message);
   session.lastMessageTime = now;
   
+  // Önceki timer'ı temizle
   if (session.messageTimer) {
     clearTimeout(session.messageTimer);
   }
   
+  // ✅ GÜNCELLENDİ: 10 saniye timer başlat
   session.messageTimer = setTimeout(() => {
     processMessageBuffer(userId);
-  }, 7000);
+  }, 10000); // 10 saniye
   
   return session.messageBuffer;
 }
 
+// ✅ GÜNCELLENDİ: Buffer işleme fonksiyonu - kurumsal mesaj eklendi
 function processMessageBuffer(userId) {
   const session = getUserSession(userId);
   
@@ -81,9 +111,13 @@ function processMessageBuffer(userId) {
   const combinedMessage = session.messageBuffer.join(' ');
   console.log(`🔄 Buffer işleniyor: "${combinedMessage}" - Kullanıcı: ${userId}`);
   
+  // Buffer'ı temizle
   session.messageBuffer = [];
   session.messageTimer = null;
   session.isProcessingBuffer = false;
+  
+  // ✅ KURUMSAL MESAJI GÖNDER
+  sendCorporateGreeting(userId, combinedMessage);
   
   return combinedMessage;
 }
@@ -111,6 +145,16 @@ function getBufferStatus(userId) {
     lastMessageTime: session.lastMessageTime,
     bufferContent: session.messageBuffer.join(' ')
   };
+}
+
+// ✅ YENİ: Buffer'ı hemen işleme fonksiyonu (manuel tetikleme için)
+function forceProcessBuffer(userId) {
+  const session = getUserSession(userId);
+  if (session.messageTimer) {
+    clearTimeout(session.messageTimer);
+    session.messageTimer = null;
+  }
+  return processMessageBuffer(userId);
 }
 
 // GÜNCELLENMİŞ startHelpTimer FONKSİYONU
@@ -238,7 +282,7 @@ async function handleGoodbye(message) {
       goodbyeMsg = '👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!';
     }
     
-    await message.reply(goodbyeMsg);
+    await sendMessageWithoutQuote(message.from, goodbyeMsg);
     
     console.log(`👋 Vedalaşma mesajı gönderildi (Saat: ${saat}:00) - Kullanıcı: ${message.from}`);
     
@@ -254,7 +298,7 @@ async function handleGoodbye(message) {
   } catch (error) {
     console.log(`❌ Vedalaşma mesajı hatası: ${error.message}`);
     // Fallback mesaj
-    await message.reply('👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
+    await sendMessageWithoutQuote(message.from, '👋 PlanB Global Network Ltd Şti adına iyi günler dileriz!');
   }
 }
 
@@ -357,5 +401,7 @@ module.exports = {
   getBufferStatus,
   // ✅ YENİ FONKSİYONLAR
   startMenuGoodbyeTimer,
-  stopMenuGoodbyeTimer
+  stopMenuGoodbyeTimer,
+  sendCorporateGreeting,
+  forceProcessBuffer
 };

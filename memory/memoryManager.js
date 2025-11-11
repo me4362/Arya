@@ -70,7 +70,16 @@ class MemoryManager {
     // JSON dosyasını kaydet
     saveKnowledge(knowledge) {
         try {
+            console.log('💾 knowledge.json kaydediliyor...');
+            console.log('📁 Dosya yolu:', this.knowledgeFile);
+            console.log('📊 Kaydedilecek veri:', knowledge.bilgiler.length, 'bilgi');
+            
             fs.writeFileSync(this.knowledgeFile, JSON.stringify(knowledge, null, 2));
+
+            // DOSYAYI KONTROL ET
+            const savedData = fs.readFileSync(this.knowledgeFile, 'utf8');
+            console.log('✅ Dosya kaydedildi, içerik:', savedData.substring(0, 100));
+            
             return true;
         } catch (error) {
             console.error('❌ knowledge.json kaydedilemedi:', error);
@@ -169,4 +178,5 @@ class MemoryManager {
 
 
 module.exports = MemoryManager;
+
 

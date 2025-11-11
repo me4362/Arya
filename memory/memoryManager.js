@@ -4,7 +4,7 @@ const { exec } = require('child_process');
 
 class MemoryManager {
     constructor() {
-        this.knowledgeFile = path.join(__dirname, 'knowledge.json');
+        this.knowledgeFile = path.join(process.cwd(), 'memory', 'knowledge.json');
         this.ensureKnowledgeFileExists();
     }
 
@@ -178,5 +178,6 @@ class MemoryManager {
 
 
 module.exports = MemoryManager;
+
 
 

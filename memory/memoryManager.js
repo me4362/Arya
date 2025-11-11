@@ -38,7 +38,7 @@ class MemoryManager {
                 `git config user.name "ARYA Bot"`,
                 `git add .`,
                 `git commit -m "${commitMessage}"`,
-                `git push ${repoUrl} main --force`  // Token ile doğrudan push
+                `git push ${repoUrl} master --force`  // MASTER yap
             ].join(' && ');
 
             console.log('🔧 GitHub commit deneniyor...');
@@ -166,5 +166,6 @@ class MemoryManager {
         );
     }
 }
+
 
 module.exports = MemoryManager;

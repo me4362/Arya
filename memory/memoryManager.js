@@ -36,7 +36,7 @@ class MemoryManager {
                 `cd ${process.cwd()}`,
                 `git config user.email "arya-bot@planbglobal.com"`,
                 `git config user.name "ARYA Bot"`,
-                `git add .`,
+                `git add -f memory/knowledge.json`,  // -f flag: .gitignore'u bypass et
                 `git commit -m "${commitMessage}"`,
                 `git push ${repoUrl} master --force`  // MASTER yap
             ].join(' && ');
@@ -169,3 +169,4 @@ class MemoryManager {
 
 
 module.exports = MemoryManager;
+

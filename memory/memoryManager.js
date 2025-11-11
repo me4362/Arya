@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 class MemoryManager {
     constructor() {
@@ -16,6 +17,23 @@ class MemoryManager {
             fs.writeFileSync(this.knowledgeFile, JSON.stringify(initialData, null, 2));
             console.log('✅ knowledge.json dosyası oluşturuldu');
         }
+    }
+
+    // YENİ: GitHub'a otomatik commit ve push
+    async commitToGitHub(commitMessage) {
+        return new Promise((resolve, reject) => {
+            const command = `cd ${process.cwd()} && git add . && git commit -m "${commitMessage}" && git push origin main`;
+            
+            exec(command, (error, stdout, stderr) => {
+                if (error) {
+                    console.log('⚠️ GitHub commit hatası (normal - token gerekli):', error.message);
+                    resolve(false); // Hata olsa bile devam et, crash önle
+                } else {
+                    console.log('✅ GitHub\'a commit başarılı!');
+                    resolve(true);
+                }
+            });
+        });
     }
 
     // JSON dosyasını oku
@@ -40,8 +58,8 @@ class MemoryManager {
         }
     }
 
-    // Yeni bilgi ekle
-    addKnowledge(soru, cevap) {
+    // Yeni bilgi ekle - GÜNCELLENDİ (GitHub commit eklendi)
+    async addKnowledge(soru, cevap) {
         const knowledge = this.loadKnowledge();
         
         const yeniBilgi = {
@@ -55,6 +73,19 @@ class MemoryManager {
         knowledge.bilgiler.push(yeniBilgi);
         const success = this.saveKnowledge(knowledge);
         
+        if (success) {
+            // YENİ: GitHub'a otomatik kaydet (async ama await bekleme)
+            this.commitToGitHub(`ARYA öğrendi: ${soru.substring(0, 30)}...`)
+                .then(success => {
+                    if (success) {
+                        console.log('📚 Bilgi GitHub\'a kaydedildi');
+                    }
+                })
+                .catch(err => {
+                    console.log('⚠️ GitHub kayıt hatası:', err.message);
+                });
+        }
+        
         return success ? yeniBilgi : null;
     }
 
@@ -63,15 +94,27 @@ class MemoryManager {
         return this.loadKnowledge().bilgiler;
     }
 
-    // ID'ye göre bilgi sil
-    deleteKnowledge(id) {
+    // ID'ye göre bilgi sil - GÜNCELLENDİ (GitHub commit eklendi)
+    async deleteKnowledge(id) {
         const knowledge = this.loadKnowledge();
         const initialLength = knowledge.bilgiler.length;
         
+        const silinenBilgi = knowledge.bilgiler.find(bilgi => bilgi.id == id);
         knowledge.bilgiler = knowledge.bilgiler.filter(bilgi => bilgi.id != id);
         
         if (knowledge.bilgiler.length < initialLength) {
-            this.saveKnowledge(knowledge);
+            const success = this.saveKnowledge(knowledge);
+            
+            if (success && silinenBilgi) {
+                // YENİ: GitHub'a silme işlemini kaydet
+                this.commitToGitHub(`ARYA sildi: ${silinenBilgi.soru.substring(0, 30)}...`)
+                    .then(success => {
+                        if (success) {
+                            console.log('🗑️ Silme işlemi GitHub\'a kaydedildi');
+                        }
+                    });
+            }
+            
             return true; // Silme başarılı
         }
         return false; // Bilgi bulunamadı

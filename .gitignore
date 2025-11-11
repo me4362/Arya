@@ -30,4 +30,7 @@ Thumbs.db
 *.swo 
  
 # Zip files 
-*.zip 
+*.zip
+
+# WhatsApp session files - YENİ EKLENDİ
+session/

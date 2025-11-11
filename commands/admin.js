@@ -59,7 +59,8 @@ module.exports = async (message, client) => {
                 return;
             }
 
-            const result = memoryManager.addKnowledge(soru, cevap);
+            // DÜZELTME: await eklendi
+            const result = await memoryManager.addKnowledge(soru, cevap);
             
             if (result) {
                 await message.reply(`✅ Öğrendim! \n*Soru:* ${soru}\n*Cevap:* ${cevap}\n\nAnahtar kelimeler: ${result.anahtar_kelimeler.join(', ')}`);
@@ -99,7 +100,8 @@ module.exports = async (message, client) => {
                 return;
             }
 
-            const success = memoryManager.deleteKnowledge(id);
+            // DÜZELTME: await eklendi
+            const success = await memoryManager.deleteKnowledge(id);
             
             if (success) {
                 await message.reply(`✅ ${id} ID'li bilgi silindi.`);

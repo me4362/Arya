@@ -1,4 +1,4 @@
-// index.js - ARYA Bot Ana Dosyası (QR ENDPOINT EKLENDİ)
+// index.js - ARYA Bot Ana Dosyası (QR ENDPOINT EKLENDİ) - ADMIN SİSTEMİ ENTEGRE
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const qrcodeLibrary = require('qrcode'); // QR görsel için
@@ -15,6 +15,9 @@ const sessionManager = require('./modules/sessionManager');
 const serviceLoader = require('./modules/serviceLoader');
 const messageHandler = require('./modules/messageHandler');
 const menuHandler = require('./modules/menuHandler');
+
+// Admin komut sistemini ekle - YENİ
+const adminHandler = require('./commands/admin');
 
 // Global client utility
 const { setGlobalClient } = require('./modules/utils/globalClient');
@@ -75,9 +78,13 @@ client.on('ready', () => {
   logger.info('ARYA Bot başlatıldı ve WhatsApp\'a bağlandı');
 });
 
-// Mesaj alma
+// Mesaj alma - GÜNCELLENDİ (Admin sistemi eklendi)
 client.on('message', async (message) => {
   try {
+    // ÖNCE admin komutlarını kontrol et - YENİ
+    await adminHandler(message, client);
+    
+    // Sonra normal mesaj işleme
     await messageHandler.handleMessage(message);
   } catch (error) {
     logger.error(`Mesaj işleme hatası: ${error.message}`);

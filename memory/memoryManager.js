@@ -19,15 +19,35 @@ class MemoryManager {
         }
     }
 
-    // YENİ: GitHub'a otomatik commit ve push
+    // YENİ: GitHub'a otomatik commit ve push - TAM ÇÖZÜM
     async commitToGitHub(commitMessage) {
         return new Promise((resolve, reject) => {
-            const command = `cd ${process.cwd()} && git add . && git commit -m "${commitMessage}" && git push origin main`;
+            // GitHub token kontrolü
+            if (!process.env.GITHUB_TOKEN) {
+                console.log('❌ GITHUB_TOKEN bulunamadı - Render Environment Variables kontrol et');
+                resolve(false);
+                return;
+            }
+
+            // Token ile doğrudan authentication
+            const repoUrl = `https://${process.env.GITHUB_TOKEN}@github.com/${process.env.GITHUB_USERNAME || 'me4362'}/${process.env.REPO_NAME || 'Arya'}.git`;
+
+            const commands = [
+                `cd ${process.cwd()}`,
+                `git config user.email "arya-bot@planbglobal.com"`,
+                `git config user.name "ARYA Bot"`,
+                `git add .`,
+                `git commit -m "${commitMessage}"`,
+                `git push ${repoUrl} main --force`  // Token ile doğrudan push
+            ].join(' && ');
+
+            console.log('🔧 GitHub commit deneniyor...');
             
-            exec(command, (error, stdout, stderr) => {
+            exec(commands, (error, stdout, stderr) => {
                 if (error) {
-                    console.log('⚠️ GitHub commit hatası (normal - token gerekli):', error.message);
-                    resolve(false); // Hata olsa bile devam et, crash önle
+                    console.log('❌ GitHub commit hatası:', error.message);
+                    console.log('🔍 Hata detayı:', stderr);
+                    resolve(false);
                 } else {
                     console.log('✅ GitHub\'a commit başarılı!');
                     resolve(true);
@@ -74,11 +94,14 @@ class MemoryManager {
         const success = this.saveKnowledge(knowledge);
         
         if (success) {
-            // YENİ: GitHub'a otomatik kaydet (async ama await bekleme)
+            // YENİ: GitHub'a otomatik kaydet
+            console.log('🚀 GitHub commit başlatılıyor...');
             this.commitToGitHub(`ARYA öğrendi: ${soru.substring(0, 30)}...`)
                 .then(success => {
                     if (success) {
                         console.log('📚 Bilgi GitHub\'a kaydedildi');
+                    } else {
+                        console.log('⚠️ Bilgi GitHub\'a kaydedilemedi (localde kayıtlı)');
                     }
                 })
                 .catch(err => {

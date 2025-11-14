@@ -1,7 +1,7 @@
 {
   "name": "arya-bot",
-  "version": "1.0.0",
-  "description": "WhatsApp Business Bot for Multiple Services - PlanB Global Network Ltd Şti",
+  "version": "2.0.0",
+  "description": "WhatsApp Business Bot with AI Learning - PlanB Global Network Ltd Şti",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -15,22 +15,33 @@
     "bot",
     "business",
     "automation",
+    "ai",
+    "machine-learning",
+    "nlp",
     "services",
     "insurance",
     "software",
     "cybersecurity",
-    "logistics"
+    "logistics",
+    "auto-learning",
+    "turkish-nlp"
   ],
   "author": "EurAsia Trade And Technology Bulgaria EOOD - ÆSIR ekibi",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "compromise": "^14.0.0",
     "express": "^4.18.2",
     "joi": "^17.9.2",
     "lodash": "^4.17.21",
+    "mammoth": "^1.6.0",
     "moment": "^2.29.4",
+    "natural": "^6.3.0",
     "node-cron": "^3.0.2",
     "node-fetch": "^2.7.0",
+    "node-html-parser": "^6.1.5",
+    "pdf-parse": "^1.1.1",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.23.0",
@@ -45,7 +56,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/planb-global/arya-bot.git"
+    "url": "https://github.com/me4362/Arya.git"
   },
-  "homepage": "https://github.com/planb-global/arya-bot#readme"
+  "homepage": "https://github.com/me4362/Arya#readme"
 }

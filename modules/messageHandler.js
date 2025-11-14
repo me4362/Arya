@@ -1,4 +1,4 @@
-// modules/messageHandler.js - BUFFER SİSTEMİ + KURUMSAL MESAJ + MENÜ TIMER EKLENDİ
+// modules/messageHandler.js - BASİTLEŞTİRİLMİŞ VERSİYON
 const logger = require('./logger');
 const messageParser = require('./messageHandler/messageParser');
 const sessionRouter = require('./messageHandler/sessionRouter');
@@ -7,81 +7,56 @@ const validation = require('./messageHandler/validation');
 const errorHandler = require('./messageHandler/errorHandler');
 const { sendMessageWithoutQuote } = require('./utils/globalClient');
 
+// Hugging Face Asistanını ekle
+const HuggingFaceAsistan = require('../huggingface-asistan');
+const hfAsistan = new HuggingFaceAsistan();
+
 // Global servis durumu değişkeni - basit çözüm
 let serviceFound = false;
 
-// Alıntısız mesaj gönderme yardımcı fonksiyonu
-async function sendReply(message, text) {
+// Buffer'ı hemen işle
+async function processCombinedMessage(message, combinedMessage, contactInfo) {
+  const sessionManager = require('./sessionManager');
+  
   try {
-    await sendMessageWithoutQuote(message.from, text);
-    logger.info(`📤 Mesaj gönderildi (alıntısız): ${message.from}`);
-  } catch (error) {
-    logger.error(`Mesaj gönderme hatası: ${error.message}`);
-    // Fallback: normal reply kullan
-    try {
-      await message.reply(text);
-    } catch (fallbackError) {
-      logger.error(`Fallback mesaj gönderme de başarısız: ${fallbackError.message}`);
+    console.log(`🎯 Birleştirilmiş mesaj işleniyor: "${combinedMessage}"`);
+    
+    // 1. İşleme bayrağını ayarla
+    sessionManager.setIsProcessingBuffer(message.from, true);
+    
+    // 2. Mesajı ayrıştır
+    const parsedMessage = messageParser.parseMessage(combinedMessage);
+    
+    console.log(`📝 Birleştirilmiş mesaj ayrıştırma: Orijinal="${combinedMessage}", Selamlama="${parsedMessage.greetingPart}", İşlem="${parsedMessage.servicePart}"`);
+    
+    // 3. Oturum durumuna göre yönlendir
+    await sessionRouter.route(message, parsedMessage, contactInfo.name, () => {
+      // Callback: servis bulunduğunda çağrılacak
+      serviceFound = true;
+      console.log('✅ Servis bulundu - Hugging Face atlanacak');
+    });
+    
+    // 4. Eğer modüler sistem servis bulamazsa, Hugging Face'e yönlendir
+    if (!serviceFound) {
+      console.log('🔍 Modüler sistem servis bulamadı, Hugging Face deneniyor...');
+      const hfSuccess = await generateHuggingFaceResponse(message);
+      
+      if (!hfSuccess) {
+        // Hugging Face de başarısız olursa genel hata mesajı
+        await sendReply(message, '❌ Üzgünüm, bu konuda size yardımcı olamadım. Lütfen tekrar deneyin veya "menü" yazarak hizmetlerimizi görün.');
+      }
     }
+  } catch (error) {
+    console.error('❌ processCombinedMessage hatası:', error);
+    // Hata durumunda da bayrağı sıfırla
+    await sendReply(message, '❌ Mesaj işlenirken beklenmedik bir hata oluştu.');
+  } finally {
+    // 5. İşleme bitti, bayrağı sıfırla
+    sessionManager.setIsProcessingBuffer(message.from, false);
   }
 }
 
-// ✅ YENİ FONKSİYON: Kurumsal red mesajı gönder
-async function sendServiceNotAvailable(message, serviceRequest = '') {
-  let responseText = '';
-  
-  if (serviceRequest && serviceRequest.trim().length > 0) {
-    // Spesifik hizmet için red mesajı
-    responseText = `🚫 *Değerli müşterimiz,*\n\n` +
-                  `"${serviceRequest}" konusunda şu an hizmet verememekteyiz. ` +
-                  `Anlayışınız için teşekkür ederiz.\n\n` +
-                  `📍 *Size yardımcı olabileceğimiz hizmetler:*\n` +
-                  `• Sigorta hizmetleri\n` +
-                  `• Yazılım geliştirme\n` +
-                  `• Siber güvenlik\n` +
-                  `• Lojistik hizmetleri\n` +
-                  `• İthalat/ihracat\n` +
-                  `• Ve diğer profesyonel hizmetler\n\n` +
-                  `ℹ️ Tüm hizmetlerimizi görmek için *"menü"* yazabilirsiniz.`;
-  } else {
-    // Genel red mesajı
-    responseText = `🚫 *Değerli müşterimiz,*\n\n` +
-                  `İstediğiniz konuda şu an hizmet verememekteyiz. ` +
-                  `Anlayışınız için teşekkür ederiz.\n\n` +
-                  `📍 *Size yardımcı olabileceğimiz hizmetler:*\n` +
-                  `• Sigorta hizmetleri\n` +
-                  `• Yazılım geliştirme\n` +
-                  `• Siber güvenlik\n` +
-                  `• Lojistik hizmetleri\n` +
-                  `• İthalat/ihracat\n` +
-                  `• Ve diğer profesyonel hizmetler\n\n` +
-                  `ℹ️ Tüm hizmetlerimizi görmek için *"menü"* yazabilirsiniz.`;
-  }
-  
-  await sendReply(message, responseText);
-  console.log(`🚫 Kurumsal red mesajı gönderildi: "${serviceRequest.substring(0, 50)}..."`);
-}
-
-// Servis durumunu kontrol et (basit fonksiyon)
-function checkServiceFound() {
-  return serviceFound;
-}
-
-// ✅ YENİ FONKSİYON: Özel komut kontrolü
-function isImmediateCommand(message) {
-  const immediateCommands = [
-    'menü', 'menu', 'yardım', 'yardim', 'help', 
-    'çıkış', 'çıkıs', 'exit', 'geri', 'back',
-    'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol',
-    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', // Sayılar
-    'evet', 'hayır', 'tamam', 'ok' // Hızlı cevaplar
-  ];
-  
-  const cleanMessage = message.toLowerCase().trim();
-  return immediateCommands.some(cmd => cleanMessage.includes(cmd));
-}
-
-// ✅ YENİ FONKSİYON: Aktif işlem durumunu kontrol et
+// Aktif işlem durumunu kontrol et
 function isActiveProcessState(state) {
   const activeStates = [
     'waiting_for_service',
@@ -95,7 +70,21 @@ function isActiveProcessState(state) {
   return activeStates.some(activeState => state.includes(activeState));
 }
 
-// ✅ YENİ FONKSİYON: Akıllı buffer birleştirme kararı
+// Özel komut kontrolü
+function isImmediateCommand(message) {
+  const immediateCommands = [
+    'menü', 'menu', 'yardım', 'yardim', 'help', 
+    'çıkış', 'çıkıs', 'exit', 'geri', 'back',
+    'iptal', 'cancel', 'teşekkür', 'tesekkur', 'sağol', 'sagol',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', // Sayılar
+    'evet', 'hayır', 'tamam', 'ok' // Hızlı cevaplar
+  ];
+  
+  const cleanMessage = message.toLowerCase().trim();
+  return immediateCommands.some(cmd => cleanMessage.includes(cmd));
+}
+
+// Akıllı buffer birleştirme kararı
 function shouldCombineMessages(newMessage, existingBuffer) {
   if (existingBuffer.length === 0) return false;
   
@@ -133,45 +122,42 @@ function shouldCombineMessages(newMessage, existingBuffer) {
   return shouldCombine;
 }
 
-// ✅ YENİ FONKSİYON: Birleştirilmiş mesajı işle
-async function processCombinedMessage(message, combinedMessage, contactInfo) {
-  console.log(`🎯 Birleştirilmiş mesaj işleniyor: "${combinedMessage}"`);
-  
-  // 1. Mesajı ayrıştır
-  const parsedMessage = messageParser.parseMessage(combinedMessage);
-  
-  console.log(`📝 Birleştirilmiş mesaj ayrıştırma: Orijinal="${combinedMessage}", Selamlama="${parsedMessage.greetingPart}", İşlem="${parsedMessage.servicePart}"`);
-  
-  // 2. Kullanıcı cevap verdiğinde tüm timer'ları durdur
-  const sessionManager = require('./sessionManager');
-  sessionManager.stopHelpTimer(message.from);
-  sessionManager.stopMenuTimer(message.from);
-  sessionManager.stopMenuGoodbyeTimer(message.from); // ✅ YENİ: Menü timer'ını durdur
-  
-  // 3. Oturum durumuna göre yönlendir
-  await sessionRouter.route(message, parsedMessage, contactInfo.name, () => {
-    // Callback: servis bulunduğunda çağrılacak
-    serviceFound = true;
-    console.log('✅ Servis bulundu - Kurumsal mesaj atlanacak');
-  });
-  
-  // ✅ YENİ: Eğer modüler sistem servis bulamazsa, KURUMSAL RED MESAJI gönder
-  if (!serviceFound) {
-    console.log('🚫 Servis bulunamadı, kurumsal red mesajı gönderiliyor...');
-    
-    const serviceRequest = parsedMessage.servicePart || combinedMessage;
-    await sendServiceNotAvailable(message, serviceRequest);
-    
-    // Ana menüye dön - 30 SANİYE BEKLE
-    setTimeout(async () => {
-      const serviceLoader = require('./serviceLoader');
-      const menuHandler = require('./menuHandler');
-      await menuHandler.showMainMenu(message, serviceLoader.loadAllServices());
-    }, 30000); // 30 saniye
+// Alıntısız mesaj gönderme yardımcı fonksiyonu
+async function sendReply(message, text) {
+  try {
+    await sendMessageWithoutQuote(message.from, text);
+    logger.info(`📤 Mesaj gönderildi (alıntısız): ${message.from}`);
+  } catch (error) {
+    logger.error(`Mesaj gönderme hatası: ${error.message}`);
+    // Fallback: normal reply kullan
+    try {
+      await message.reply(text);
+    } catch (fallbackError) {
+      logger.error(`Fallback mesaj gönderme de başarısız: ${fallbackError.message}`);
+    }
   }
 }
 
-// ✅ GÜNCELLENDİ: Ana mesaj işleme fonksiyonu - MENÜ TIMER DURDURMA EKLENDİ
+// Hugging Face ile yanıt oluştur
+async function generateHuggingFaceResponse(message) {
+  try {
+    console.log('🤖 Hugging Face ile yanıt oluşturuluyor...');
+    const hfResponse = await hfAsistan.generateResponse(message.body);
+    console.log(`💬 Hugging Face Yanıtı: "${hfResponse}"`);
+    await sendReply(message, hfResponse);
+    return true;
+  } catch (hfError) {
+    console.error('❌ Hugging Face yanıt hatası:', hfError);
+    return false;
+  }
+}
+
+// Servis durumunu kontrol et (basit fonksiyon)
+function checkServiceFound() {
+  return serviceFound;
+}
+
+// Ana mesaj işleme fonksiyonu - BUFFER SİSTEMİ EKLENDİ
 async function handleMessage(message) {
   try {
     // Servis bulma durumunu sıfırla
@@ -194,24 +180,19 @@ async function handleMessage(message) {
     let session = sessionManager.getUserSession(message.from);
     
     console.log(`🔍 Oturum durumu: ${session.currentState}, Mesaj: "${validationResult.messageBody}"`);
-    console.log(`📊 Buffer durumu: ${session.messageBuffer.length} mesaj, İşleniyor: ${session.isProcessingBuffer}`);
+    console.log(`📊 Buffer durumu: ${sessionManager.getBufferStatus(message.from).bufferSize} mesaj, İşleniyor: ${session.isProcessingBuffer}`);
     
-    // ✅ DEĞİŞTİ: Kullanıcı mesaj gönderdiğinde MENÜ TIMER'INI DURDUR
-    sessionManager.stopMenuGoodbyeTimer(message.from);
-    
-    // ✅ KALDIR: Çift timer başlatma - ESKİ KOD
-    // startHelpTimer(message); // BU SATIR KALDIRILDI
-    
-    // ✅ YENİ: Sadece yardım timer'ını durdur (mevcut sistemle uyumluluk)
+    // 4. Kullanıcı cevap verdiğinde tüm timer'ları durdur
     sessionManager.stopHelpTimer(message.from);
+    sessionManager.stopMenuTimer(message.from);
     
-    // 4. Buffer kontrolü - eğer buffer işleniyorsa bekle
+    // 5. Buffer kontrolü - eğer buffer işleniyorsa bekle
     if (session.isProcessingBuffer) {
       console.log(`⏳ Buffer işleniyor, yeni mesaj bekleniyor...`);
       return;
     }
     
-    // 5. AKTİF İŞLEM BYPASS - Eğer kullanıcı aktif işlem yapıyorsa buffer'ı atla
+    // 6. AKTİF İŞLEM BYPASS - Eğer kullanıcı aktif işlem yapıyorsa buffer'ı atla
     if (isActiveProcessState(session.currentState)) {
       console.log(`⚡ Aktif işlem tespit edildi - Buffer bypass: ${session.currentState}`);
       
@@ -220,7 +201,7 @@ async function handleMessage(message) {
       return;
     }
     
-    // 6. Özel komut bypass - Hemen işle
+    // 7. Özel komut bypass - Hemen işle
     const isSpecialCommand = isImmediateCommand(validationResult.messageBody);
     if (isSpecialCommand) {
       console.log(`⚡ Özel komut tespit edildi - Buffer bypass: "${validationResult.messageBody}"`);
@@ -230,14 +211,14 @@ async function handleMessage(message) {
       return;
     }
     
-    // 7. Buffer'a mesaj ekle
+    // 8. Buffer'a mesaj ekle
     sessionManager.addToMessageBuffer(message.from, validationResult.messageBody);
     
     // Buffer durumunu kontrol et
     const bufferStatus = sessionManager.getBufferStatus(message.from);
     console.log(`📥 Buffer'a eklendi: ${bufferStatus.bufferSize} mesaj -> "${bufferStatus.bufferContent}"`);
     
-    // 8. Akıllı buffer birleştirme kararı
+    // 9. Akıllı buffer birleştirme kararı
     const shouldCombine = shouldCombineMessages(validationResult.messageBody, session.messageBuffer);
     
     // Eğer buffer'da 1 mesaj varsa ve birleştirme gerekmiyorsa, timer'ı bekleyelim
@@ -260,10 +241,13 @@ async function handleMessage(message) {
   } catch (error) {
     console.log(`❌ Mesaj işleme hatası: ${error.message}`);
     
-    // Hata durumunda kurumsal mesaj gönder
-    console.log('🔄 Hata durumunda kurumsal mesaj gönderiliyor...');
+    // Hata durumunda Hugging Face'i dene
+    console.log('🔄 Hata durumunda Hugging Face deneniyor...');
     try {
-      await sendServiceNotAvailable(message, 'İsteğiniz');
+      const hfSuccess = await generateHuggingFaceResponse(message);
+      if (!hfSuccess) {
+        await errorHandler.handleError(message, error);
+      }
     } catch (finalError) {
       await errorHandler.handleError(message, finalError);
     }
@@ -274,17 +258,16 @@ module.exports = {
   handleMessage,
   sendReply,
   checkServiceFound,
+  generateHuggingFaceResponse,
   getTimeBasedGreeting: require('./messageHandler/greetingManager').getTimeBasedGreeting,
   isGreeting: messageParser.isGreeting,
   parseMessage: messageParser.parseMessage,
   handleGreeting: require('./messageHandler/greetingManager').handleGreeting,
   findMatchingService: require('./messageHandler/serviceMatcher').findMatchingService,
   createPersonalizedGreeting: require('./messageHandler/personalization').createPersonalizedGreeting,
-  
-  // ✅ YENİ FONKSİYONLAR
-  sendServiceNotAvailable,
-  isImmediateCommand,
+  // YENİ BUFFER FONKSİYONLARI
+  processCombinedMessage,
   isActiveProcessState,
-  shouldCombineMessages,
-  processCombinedMessage
+  isImmediateCommand,
+  shouldCombineMessages
 };

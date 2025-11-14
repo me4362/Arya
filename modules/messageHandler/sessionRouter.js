@@ -19,25 +19,20 @@ async function sendResponse(message, text) {
   }
 }
 
-// Ana route fonksiyonu - CALLBACK EKLENDİ
-async function route(message, parsedMessage, contactName = '', onServiceFound = null) {
+// modules/messageHandler/sessionRouter.js - BASİTLEŞTİRİLMİŞ AKIŞ
+async function route(message, parsedMessage, contactName = '') {
   const { greetingPart, servicePart, cleanMessage, originalMessage } = parsedMessage;
   const services = serviceLoader.loadAllServices();
   const session = sessionManager.getUserSession(message.from);
   
   console.log(`🔍 Route: Durum=${session?.currentState}, Mesaj=${cleanMessage}`);
   
-  // Servis bulundu callback'i
-  const serviceFound = () => {
-    if (onServiceFound && typeof onServiceFound === 'function') {
-      onServiceFound();
-    }
-  };
+  // Servis bulundu callback'i kaldırıldı. Servis bulunursa, messageHandler'daki
+  // serviceFound bayrağı route fonksiyonunun dışında ayarlanacak.
   
   // TEŞEKKÜR MESAJLARI - EN ÖNCELİKLİ
   if (messageParser.isThanksMessage(cleanMessage)) {
     console.log(`🙏 Teşekkür mesajı algılandı`);
-    serviceFound();
     await greetingManager.handleThanks(message, contactName);
     return;
   }
@@ -45,7 +40,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   // VEDALAŞMA MESAJLARI - ÖNCELİKLİ
   if (messageParser.isGoodbyeMessage(cleanMessage)) {
     console.log(`👋 Vedalaşma mesajı algılandı`);
-    serviceFound();
     await greetingManager.handleGoodbye(message, contactName);
     return;
   }
@@ -53,7 +47,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   // ÇIKIŞ KOMUTLARI - ÖNCELİKLİ
   if (isExitCommand(cleanMessage)) {
     console.log(`🚪 Çıkış komutu algılandı`);
-    serviceFound();
     await handleExitCommand(message, services, contactName);
     return;
   }
@@ -61,7 +54,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   // DİĞER HİZMETLER İSTEĞİ - ÖNCELİKLİ
   if (messageParser.isOtherServicesRequest(cleanMessage)) {
     console.log(`🔄 Diğer hizmetler isteği algılandı`);
-    serviceFound();
     await handleOtherServicesRequest(message, services, contactName);
     return;
   }
@@ -69,7 +61,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   // MENÜ İSTEĞİ - ÖNCELİKLİ
   if (messageParser.isMenuRequest(cleanMessage)) {
     console.log(`📋 Menü isteği algılandı`);
-    serviceFound();
     sessionManager.updateUserSession(message.from, { currentState: 'main_menu' });
     await menuHandler.showMainMenu(message, services);
     return;
@@ -77,7 +68,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   
   // ÖNCE: Satış cevabı durumunu kontrol et
   if (session && session.currentState === 'waiting_for_sale_response') {
-    serviceFound();
     const saleFlow = require('../saleFlow');
     await saleFlow.handleSaleResponse(message, cleanMessage, services);
     return;
@@ -85,7 +75,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   
   // SONRA: Soru-cevap akışı
   if (session && session.currentState === 'collecting_answer') {
-    serviceFound();
     const success = await serviceFlow.handleAnswer(message, cleanMessage, session);
     return;
   }
@@ -94,7 +83,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   if (messageParser.isNumberInput(cleanMessage)) {
     const number = parseInt(cleanMessage);
     console.log(`🔢 Sayı seçimi algılandı: ${number}, Durum: ${session?.currentState}`);
-    serviceFound();
     await menuHandler.handleNumberSelection(message, number, services);
     return;
   }
@@ -102,7 +90,6 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   // YARDIM İSTEĞİ
   if (messageParser.isHelpRequest(cleanMessage)) {
     console.log(`❓ Yardım isteği algılandı`);
-    serviceFound();
     await handleHelpRequest(message, services, contactName);
     return;
   }
@@ -110,20 +97,18 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   // İPTAL İSTEĞİ
   if (messageParser.isCancelRequest(cleanMessage)) {
     console.log(`⏹️ İptal isteği algılandı`);
-    serviceFound();
     await handleCancelRequest(message, services, contactName);
     return;
   }
   
   // Eğer selamlama varsa, önce selamla
   if (greetingPart && messageParser.isGreeting(greetingPart)) {
-    serviceFound();
     await greetingManager.handleGreeting(message, services, contactName);
     
     // Eğer selamlamadan sonra işlem de varsa, 2 saniye bekle ve işlemi başlat
     if (servicePart && servicePart.length > 0) {
       setTimeout(async () => {
-        await processServiceRequest(message, servicePart, services, serviceFound);
+        await processServiceRequest(message, servicePart, services);
       }, 2000);
       return;
     }
@@ -132,7 +117,7 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   
   // Sadece işlem varsa, direkt işlemi başlat
   if (servicePart && servicePart.length > 0) {
-    await processServiceRequest(message, servicePart, services, serviceFound);
+    await processServiceRequest(message, servicePart, services);
     return;
   }
   
@@ -141,14 +126,13 @@ async function route(message, parsedMessage, contactName = '', onServiceFound = 
   await handleUnknownMessage(message, services, contactName);
 }
 
-// Process Service Request - CALLBACK EKLENDİ
-async function processServiceRequest(message, serviceRequest, services, serviceFound = null) {
+// Process Service Request
+async function processServiceRequest(message, serviceRequest, services) {
   console.log(`🔍 Servis isteği işleniyor: "${serviceRequest}"`);
   
   // Özel durumlar - servis olarak aranmamalı
   if (serviceRequest.toLowerCase().includes('menü') || serviceRequest.toLowerCase().includes('menu')) {
     console.log(`📋 Menü isteği - servis olarak aranmayacak`);
-    if (serviceFound) serviceFound();
     sessionManager.updateUserSession(message.from, { currentState: 'main_menu' });
     await menuHandler.showMainMenu(message, services);
     return;
@@ -157,7 +141,6 @@ async function processServiceRequest(message, serviceRequest, services, serviceF
   // Anlamsız mesaj kontrolü
   if (isMeaninglessMessage(serviceRequest)) {
     console.log(`❓ Anlamsız mesaj algılandı`);
-    if (serviceFound) serviceFound();
     await handleMeaninglessMessage(message, services);
     return;
   }
@@ -166,7 +149,6 @@ async function processServiceRequest(message, serviceRequest, services, serviceF
   
   if (matchedService) {
     console.log(`✅ Servis eşleşti: ${matchedService.type} - ${matchedService.name}`);
-    if (serviceFound) serviceFound();
     
     // DİYALOG TİPİ CEVAPLAR İÇİN
     if (matchedService.type === 'diyalog') {
@@ -182,7 +164,7 @@ async function processServiceRequest(message, serviceRequest, services, serviceF
     }
   } else {
     console.log(`❌ Servis eşleşmedi: "${serviceRequest}"`);
-    // Servis bulunamadı - callback çağrılmaz (Hugging Face devreye girer)
+    // Servis bulunamadı - Hugging Face devreye girer
     await handleUnknownMessage(message, services);
   }
 }

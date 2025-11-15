@@ -1,4 +1,4 @@
-// index.js - ARYA Bot Ana Dosyası (TÜM GÜNCELLEMELERLE)
+// index.js - ARYA Bot Ana Dosyası (TÜM ENDPOINT'LER EKLENDİ)
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const qrcodeLibrary = require('qrcode');
@@ -58,10 +58,14 @@ client.on('qr', (qr) => {
   console.log('========================');
   qrcode.generate(qr, { small: true });
   console.log('========================');
-  console.log('📲 QR Kodu: http://localhost:5000/qr-image');
-  console.log('📲 JSON: http://localhost:5000/qr');
+  console.log('🌐 RENDER.COM ENDPOINT LİNKLERİ:');
+  console.log('📱 QR Görsel: https://arya-zr46.onrender.com/qr-image');
+  console.log('📱 QR JSON: https://arya-zr46.onrender.com/qr');
+  console.log('📊 Health check: https://arya-zr46.onrender.com/health');
+  console.log('📋 Servisler: https://arya-zr46.onrender.com/services');
+  console.log('🏠 Ana Sayfa: https://arya-zr46.onrender.com/');
   console.log('========================');
-  logger.info('QR kodu oluşturuldu - Web üzerinden tarayabilirsiniz');
+  logger.info('QR kodu oluşturuldu - Render.com üzerinden tarayabilirsiniz');
 });
 
 // Bağlantı başarılı
@@ -79,6 +83,12 @@ client.on('ready', () => {
     console.log(`📱 Bağlı kullanıcı: ${client.info.pushname}`);
     console.log(`📞 Telefon: ${client.info.wid.user}`);
   }
+  
+  console.log('\n🌐 RENDER.COM ENDPOINT LİNKLERİ:');
+  console.log('📊 Health check: https://arya-zr46.onrender.com/health');
+  console.log('📋 Servisler: https://arya-zr46.onrender.com/services');
+  console.log('🏠 Ana Sayfa: https://arya-zr46.onrender.com/');
+  console.log('========================');
   
   logger.info('ARYA Bot başlatıldı ve WhatsApp\'a bağlandı');
 });
@@ -106,7 +116,7 @@ client.on('disconnected', (reason) => {
   }, 5000);
 });
 
-// Mesaj alma - GÜNCELLENDİ (sendMessageWithoutQuote kullanılıyor)
+// Mesaj alma
 client.on('message', async (message) => {
   try {
     // ÖNCE admin komutlarını kontrol et
@@ -127,14 +137,14 @@ client.on('message', async (message) => {
     try {
       console.log(`📨 Hugging Face ile yanıt oluşturuluyor: ${message.body}`);
       
-      // Hugging Face ile akıllı yanıt - GÜNCELLENDİ
+      // Hugging Face ile akıllı yanıt
       const intelligentResponse = await hfAsistan.generateResponse(message.body);
       await sendMessageWithoutQuote(message.from, intelligentResponse);
       
     } catch (hfError) {
       console.error('❌ Hugging Face yanıt hatası:', hfError);
       
-      // Son çare olarak genel hata mesajı - GÜNCELLENDİ
+      // Son çare olarak genel hata mesajı
       try {
         await sendMessageWithoutQuote(message.from, '❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.');
       } catch (replyError) {
@@ -162,43 +172,90 @@ app.use((req, res, next) => {
   next();
 });
 
+// ========== TÜM ENDPOINT'LER TANIMLANDI ==========
+
+// Root endpoint - ANA SAYFA
+app.get('/', (req, res) => {
+  res.json({
+    message: '🤖 ARYA Bot API Service - Hoş Geldiniz',
+    status: isConnected ? 'connected' : 'disconnected',
+    qr_available: qrGenerated && !isConnected,
+    company: 'PlanB Global Network Ltd Şti',
+    developer: 'EurAsia Trade And Technology Bulgaria EOOD - ÆSIR Ekibi',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      home: '/',
+      health: '/health',
+      qr: '/qr',
+      qr_image: '/qr-image',
+      services: '/services'
+    },
+    documentation: 'ARYA Bot için REST API servisi'
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  const botStatus = isConnected ? 'connected' : 'disconnected';
+  
+  res.json({ 
+    status: 'OK', 
+    bot: 'ARYA', 
+    version: '1.0.0',
+    company: 'PlanB Global Network Ltd Şti',
+    whatsapp_status: botStatus,
+    qr_available: qrGenerated && !isConnected,
+    is_connected: isConnected,
+    qr_generated: qrGenerated,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory_usage: process.memoryUsage(),
+    server_port: PORT,
+    render_url: 'https://arya-zr46.onrender.com'
+  });
+});
+
 // QR Endpoint - JSON formatında
 app.get('/qr', (req, res) => {
-  console.log(`🔍 QR endpoint çağrıldı - qrGenerated: ${qrGenerated}, isConnected: ${isConnected}`);
+  console.log(`🔍 /qr endpoint çağrıldı - qrGenerated: ${qrGenerated}, isConnected: ${isConnected}`);
   
   if (isConnected) {
     return res.json({
       status: 'connected',
-      message: 'Bot zaten WhatsApp\'a bağlı',
+      message: '✅ Bot zaten WhatsApp\'a bağlı',
       connected: true,
       bot_ready: true,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      render_url: 'https://arya-zr46.onrender.com'
     });
   }
   
   if (!qrGenerated || !currentQR) {
     return res.json({
       status: 'waiting',
-      message: 'QR kodu henüz oluşturulmadı. Lütfen bekleyin...',
+      message: '⏳ QR kodu henüz oluşturulmadı. Lütfen bekleyin...',
       connected: false,
       bot_ready: false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      render_url: 'https://arya-zr46.onrender.com'
     });
   }
   
   res.json({
     status: 'success',
-    message: 'QR kodu oluşturuldu, WhatsApp Web ile tarayın',
+    message: '📱 QR kodu oluşturuldu, WhatsApp Web ile tarayın',
     qr_code: currentQR,
     connected: false,
     bot_ready: false,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    qr_image_url: 'https://arya-zr46.onrender.com/qr-image',
+    render_url: 'https://arya-zr46.onrender.com'
   });
 });
 
 // QR Endpoint - Görsel formatında
 app.get('/qr-image', async (req, res) => {
-  console.log(`🔍 QR-image endpoint çağrıldı - qrGenerated: ${qrGenerated}, isConnected: ${isConnected}`);
+  console.log(`🔍 /qr-image endpoint çağrıldı - qrGenerated: ${qrGenerated}, isConnected: ${isConnected}`);
   
   if (isConnected) {
     return res.send(`
@@ -207,13 +264,17 @@ app.get('/qr-image', async (req, res) => {
       <head>
         <title>ARYA Bot - Durum</title>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; }
+          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
           .status { background: #4CAF50; padding: 20px; border-radius: 10px; margin: 20px 0; }
           .info { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin: 15px 0; }
-          a { color: #FFD700; text-decoration: none; font-weight: bold; }
-          a:hover { text-decoration: underline; }
+          a { color: #FFD700; text-decoration: none; font-weight: bold; display: inline-block; margin: 10px; padding: 10px 20px; background: rgba(255,255,255,0.2); border-radius: 5px; transition: all 0.3s ease; }
+          a:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+          h1 { margin-bottom: 20px; font-size: 2.5em; }
+          .links { margin-top: 30px; }
         </style>
       </head>
       <body>
@@ -224,11 +285,16 @@ app.get('/qr-image', async (req, res) => {
             <p>ARYA botu WhatsApp'a başarıyla bağlandı.</p>
           </div>
           <div class="info">
-            <p><strong>Durum:</strong> Aktif</p>
-            <p><strong>Zaman:</strong> ${new Date().toLocaleString('tr-TR')}</p>
+            <p><strong>📊 Durum:</strong> Aktif ve Çalışıyor</p>
+            <p><strong>🕐 Zaman:</strong> ${new Date().toLocaleString('tr-TR')}</p>
+            <p><strong>🌐 Sunucu:</strong> Render.com</p>
+            <p><strong>🔗 URL:</strong> arya-zr46.onrender.com</p>
           </div>
-          <p><a href="/health">📊 Bot Durumunu Kontrol Et</a></p>
-          <p><a href="/">🏠 Ana Sayfa</a></p>
+          <div class="links">
+            <a href="/health">📊 Bot Durumu</a>
+            <a href="/services">📋 Servisler</a>
+            <a href="/">🏠 Ana Sayfa</a>
+          </div>
         </div>
       </body>
       </html>
@@ -242,12 +308,17 @@ app.get('/qr-image', async (req, res) => {
       <head>
         <title>ARYA Bot - QR Bekleniyor</title>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); color: white; }
-          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); color: white; min-height: 100vh; }
+          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
           .status { background: #ff9800; padding: 20px; border-radius: 10px; margin: 20px 0; }
           .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 2s linear infinite; margin: 20px auto; }
           @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+          a { color: white; text-decoration: none; font-weight: bold; display: inline-block; margin: 10px; padding: 10px 20px; background: rgba(255,255,255,0.2); border-radius: 5px; transition: all 0.3s ease; }
+          a:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+          h1 { margin-bottom: 20px; font-size: 2.5em; }
         </style>
       </head>
       <body>
@@ -259,7 +330,10 @@ app.get('/qr-image', async (req, res) => {
           </div>
           <div class="loader"></div>
           <p>Lütfen sayfayı birkaç saniye sonra yenileyin</p>
-          <p><a href="/qr" style="color: white;">🔄 JSON Durumu Kontrol Et</a></p>
+          <div style="margin-top: 20px;">
+            <a href="/qr">🔄 JSON Durumu Kontrol Et</a>
+            <a href="/health">📊 Sistem Durumu</a>
+          </div>
         </div>
       </body>
       </html>
@@ -274,14 +348,22 @@ app.get('/qr-image', async (req, res) => {
       <head>
         <title>ARYA Bot - QR Kod</title>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; }
+          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
           .qr-image { margin: 20px 0; padding: 20px; background: white; border-radius: 10px; display: inline-block; }
           .instructions { background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left; }
           .status { background: #ff9800; padding: 15px; border-radius: 8px; margin: 15px 0; }
-          a { color: #FFD700; text-decoration: none; font-weight: bold; margin: 0 10px; }
-          a:hover { text-decoration: underline; }
+          a { color: #FFD700; text-decoration: none; font-weight: bold; display: inline-block; margin: 10px; padding: 10px 20px; background: rgba(255,255,255,0.2); border-radius: 5px; transition: all 0.3s ease; }
+          a:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); }
+          h1 { margin-bottom: 20px; font-size: 2em; }
+          .links { margin-top: 30px; }
+          @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.8em; }
+          }
         </style>
       </head>
       <body>
@@ -303,22 +385,33 @@ app.get('/qr-image', async (req, res) => {
             <img src="${qrImage}" alt="WhatsApp QR Code" style="max-width: 300px; border: 2px solid #333;">
           </div>
           
-          <div style="margin: 20px 0;">
-            <p><a href="/health">📊 Bot Durumu</a></p>
-            <p><a href="/qr">🔗 JSON API</a></p>
-            <p><a href="/">🏠 Ana Sayfa</a></p>
+          <div class="info" style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <p><strong>🌐 Sunucu:</strong> Render.com</p>
+            <p><strong>🔗 URL:</strong> arya-zr46.onrender.com</p>
+            <p><strong>🕐 Zaman:</strong> ${new Date().toLocaleString('tr-TR')}</p>
+          </div>
+          
+          <div class="links">
+            <a href="/health">📊 Bot Durumu</a>
+            <a href="/qr">🔗 JSON API</a>
+            <a href="/services">📋 Servisler</a>
+            <a href="/">🏠 Ana Sayfa</a>
           </div>
           
           <script>
+            console.log('🔍 QR sayfası yüklendi - Otomatik yenileme aktif');
             setInterval(() => {
               fetch('/qr')
                 .then(response => response.json())
                 .then(data => {
+                  console.log('🔄 Durum kontrolü:', data.status);
                   if (data.connected) {
+                    console.log('✅ Bot bağlandı, sayfa yenileniyor...');
                     window.location.reload();
                   }
-                });
-            }, 10000);
+                })
+                .catch(err => console.log('❌ Durum kontrol hatası:', err));
+            }, 5000);
           </script>
         </div>
       </body>
@@ -329,39 +422,23 @@ app.get('/qr-image', async (req, res) => {
     res.status(500).send(`
       <!DOCTYPE html>
       <html>
-      <head><title>Hata</title></head>
+      <head>
+        <title>Hata</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f8f9fa; color: #dc3545; }
+          .error { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; }
+        </style>
+      </head>
       <body>
-        <h1>❌ QR oluşturulurken hata</h1>
-        <p>${error.message}</p>
+        <div class="error">
+          <h1>❌ QR oluşturulurken hata</h1>
+          <p>${error.message}</p>
+          <a href="/" style="color: #007bff; text-decoration: none;">Ana Sayfaya Dön</a>
+        </div>
       </body>
       </html>
     `);
   }
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  const botStatus = isConnected ? 'connected' : 'disconnected';
-  
-  res.json({ 
-    status: 'OK', 
-    bot: 'ARYA', 
-    version: '1.0.0',
-    company: 'PlanB Global Network Ltd Şti',
-    whatsapp_status: botStatus,
-    qr_available: qrGenerated && !isConnected,
-    is_connected: isConnected,
-    qr_generated: qrGenerated,
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    memory_usage: process.memoryUsage(),
-    endpoints: {
-      qr: '/qr',
-      qr_image: '/qr-image',
-      health: '/health',
-      services: '/services'
-    }
-  });
 });
 
 // Services endpoint
@@ -372,50 +449,48 @@ app.get('/services', (req, res) => {
       success: true,
       data: services,
       count: Object.keys(services).length,
-      loaded_at: new Date().toISOString()
+      loaded_at: new Date().toISOString(),
+      render_url: 'https://arya-zr46.onrender.com'
     });
   } catch (error) {
     logger.error(`Services endpoint hatası: ${error.message}`);
     res.status(500).json({
       success: false,
-      error: 'Servisler yüklenirken hata oluştu'
+      error: 'Servisler yüklenirken hata oluştu',
+      render_url: 'https://arya-zr46.onrender.com'
     });
   }
 });
 
-// Root endpoint
-app.get('/', (req, res) => {
-  res.json({
-    message: 'ARYA Bot API Service',
-    status: isConnected ? 'connected' : 'disconnected',
-    qr_available: qrGenerated && !isConnected,
-    endpoints: {
-      health: '/health',
-      qr: '/qr',
-      qr_image: '/qr-image',
-      services: '/services'
-    },
-    documentation: 'ARYA Bot için REST API servisi',
-    company: 'PlanB Global Network Ltd Şti'
-  });
-});
-
-// 404 handler
+// 404 handler - GÜNCELLENDİ
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Endpoint bulunamadı',
-    available_endpoints: ['/', '/health', '/qr', '/qr-image', '/services']
+    requested_url: req.originalUrl,
+    available_endpoints: [
+      '/',
+      '/health', 
+      '/qr',
+      '/qr-image',
+      '/services'
+    ],
+    render_url: 'https://arya-zr46.onrender.com'
   });
 });
 
 // Sunucuyu başlat
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🌐 ARYA Bot API http://0.0.0.0:${PORT} adresinde çalışıyor`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`📋 Servisler: http://localhost:${PORT}/services`);
-  console.log(`📱 QR Kod: http://localhost:${PORT}/qr-image`);
-  console.log(`📱 QR JSON: http://localhost:${PORT}/qr`);
-  logger.info(`ARYA Bot API ${PORT} portunda başlatıldı`);
+  console.log(`\n🌐 ARYA Bot API Sunucusu Başlatıldı:`);
+  console.log(`📍 Yerel Adres: http://localhost:${PORT}`);
+  console.log(`🌍 Ağ Adresi: http://0.0.0.0:${PORT}`);
+  console.log(`🚀 Render.com URL: https://arya-zr46.onrender.com`);
+  console.log(`📊 Health check: https://arya-zr46.onrender.com/health`);
+  console.log(`📋 Servisler: https://arya-zr46.onrender.com/services`);
+  console.log(`📱 QR Görsel: https://arya-zr46.onrender.com/qr-image`);
+  console.log(`📱 QR JSON: https://arya-zr46.onrender.com/qr`);
+  console.log(`🏠 Ana Sayfa: https://arya-zr46.onrender.com/`);
+  console.log('================================');
+  logger.info(`ARYA Bot API ${PORT} portunda başlatıldı - Render.com`);
 });
 
 // Botu başlat
@@ -423,7 +498,7 @@ console.log('🚀 ARYA Bot başlatılıyor...');
 console.log('📁 Modüler yapı yükleniyor...');
 console.log('🤖 Hugging Face Asistanı aktif!');
 console.log('⚡ Admin komut sistemi aktif!');
-console.log('🔗 QR Endpoint\'leri aktif!');
+console.log('🔗 Tüm endpoint\'ler aktif!');
 
 client.initialize().catch(error => {
   logger.error(`Bot başlatma hatası: ${error.message}`);
@@ -467,7 +542,6 @@ process.on('SIGTERM', async () => {
 process.on('uncaughtException', (error) => {
   logger.error(`Beklenmeyen hata: ${error.message}`);
   console.log('❌ Kritik hata oluştu:', error.message);
-  console.log('🔄 Bot yeniden başlatılabilir...');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
@@ -479,8 +553,11 @@ process.on('unhandledRejection', (reason, promise) => {
 setTimeout(() => {
   if (!isConnected) {
     console.log('\n⏳ WhatsApp bağlantısı bekleniyor...');
-    console.log('📲 Web QR: http://localhost:5000/qr-image');
-    console.log('📲 JSON QR: http://localhost:5000/qr');
-    console.log('📊 Durum: http://localhost:5000/health');
+    console.log('📱 QR kodunu taramak için şu linki kullanın:');
+    console.log('   https://arya-zr46.onrender.com/qr-image');
+    console.log('\n🔗 Diğer bağlantılar:');
+    console.log('   📊 Durum: https://arya-zr46.onrender.com/health');
+    console.log('   📋 Servisler: https://arya-zr46.onrender.com/services');
+    console.log('   🏠 Ana Sayfa: https://arya-zr46.onrender.com/');
   }
 }, 3000);

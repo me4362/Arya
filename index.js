@@ -1,7 +1,7 @@
-// index.js - ARYA Bot Ana Dosyası (KONSOLİDE EDİLMİŞ & OPTİMİZE)
+// index.js - ARYA Bot Ana Dosyası (TÜM GÜNCELLEMELERLE)
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
-const qrcodeLibrary = require('qrcode'); // QR görsel için
+const qrcodeLibrary = require('qrcode');
 const express = require('express');
 const path = require('path');
 
@@ -20,11 +20,12 @@ const menuHandler = require('./modules/menuHandler');
 const adminHandler = require('./commands/admin');
 
 // Global client utility
-const { setGlobalClient } = require('./modules/utils/globalClient');
+const { setGlobalClient, sendMessageWithoutQuote } = require('./modules/utils/globalClient');
 
 // QR kod değişkenleri
 let currentQR = null;
 let qrGenerated = false;
+let isConnected = false;
 
 // WhatsApp client oluşturma
 const client = new Client({
@@ -51,13 +52,14 @@ console.log('🌐 Global client instance başlatıldı');
 client.on('qr', (qr) => {
   currentQR = qr;
   qrGenerated = true;
+  isConnected = false;
   
   console.log('\n📱 WHATSAPP BAĞLANTI KODU:');
   console.log('========================');
   qrcode.generate(qr, { small: true });
   console.log('========================');
-  console.log('📲 QR Kodu: http://0.0.0.0:5000/qr-image');
-  console.log('📲 JSON: http://0.0.0.0:5000/qr');
+  console.log('📲 QR Kodu: http://localhost:5000/qr-image');
+  console.log('📲 JSON: http://localhost:5000/qr');
   console.log('========================');
   logger.info('QR kodu oluşturuldu - Web üzerinden tarayabilirsiniz');
 });
@@ -66,13 +68,13 @@ client.on('qr', (qr) => {
 client.on('ready', () => {
   currentQR = null;
   qrGenerated = false;
+  isConnected = true;
   
   console.log('\n✅ ARYA BOT BAŞARIYLA BAĞLANDI!');
   console.log('🤖 Bot: ARYA');
   console.log('🏢 Firma: PlanB Global Network Ltd Şti');
   console.log('🚀 Geliştirici: EurAsia Trade And Technology Bulgaria EOOD - ÆSIR Ekibi');
   
-  // Client'ın gerçekten hazır olduğunu kontrol et
   if (client.info) {
     console.log(`📱 Bağlı kullanıcı: ${client.info.pushname}`);
     console.log(`📞 Telefon: ${client.info.wid.user}`);
@@ -83,6 +85,7 @@ client.on('ready', () => {
 
 // Bağlantı hatası
 client.on('auth_failure', (msg) => {
+  isConnected = false;
   logger.error('WhatsApp bağlantı hatası: ' + msg);
   console.log('❌ WhatsApp bağlantı hatası. Lütfen tekrar deneyin.');
   console.log('💡 Oturum dosyalarını silmek için: rm -rf session/');
@@ -90,6 +93,7 @@ client.on('auth_failure', (msg) => {
 
 // Bağlantı kesildi - OTOMATİK YENİDEN BAĞLANMA
 client.on('disconnected', (reason) => {
+  isConnected = false;
   logger.warn('WhatsApp bağlantısı kesildi: ' + reason);
   console.log('🔌 WhatsApp bağlantısı kesildi. 5 saniye sonra yeniden bağlanılıyor...');
   
@@ -102,13 +106,12 @@ client.on('disconnected', (reason) => {
   }, 5000);
 });
 
-// Mesaj alma - KONSOLİDE EDİLMİŞ MANTIK
+// Mesaj alma - GÜNCELLENDİ (sendMessageWithoutQuote kullanılıyor)
 client.on('message', async (message) => {
   try {
     // ÖNCE admin komutlarını kontrol et
     const isAdminCommand = await adminHandler(message, client);
     
-    // Eğer admin komutu işlendiyse normal mesaj işlemeyi atla
     if (isAdminCommand) {
       return;
     }
@@ -124,17 +127,15 @@ client.on('message', async (message) => {
     try {
       console.log(`📨 Hugging Face ile yanıt oluşturuluyor: ${message.body}`);
       
-      // Hugging Face ile akıllı yanıt
+      // Hugging Face ile akıllı yanıt - GÜNCELLENDİ
       const intelligentResponse = await hfAsistan.generateResponse(message.body);
-      const { sendMessageWithoutQuote } = require('./modules/utils/globalClient');
       await sendMessageWithoutQuote(message.from, intelligentResponse);
       
     } catch (hfError) {
       console.error('❌ Hugging Face yanıt hatası:', hfError);
       
-      // Son çare olarak genel hata mesajı
+      // Son çare olarak genel hata mesajı - GÜNCELLENDİ
       try {
-        const { sendMessageWithoutQuote } = require('./modules/utils/globalClient');
         await sendMessageWithoutQuote(message.from, '❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.');
       } catch (replyError) {
         logger.error(`Hata mesajı gönderilemedi: ${replyError.message}`);
@@ -154,14 +155,34 @@ if (!process.env.PORT) {
 
 app.use(express.json());
 
+// CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
 // QR Endpoint - JSON formatında
 app.get('/qr', (req, res) => {
+  console.log(`🔍 QR endpoint çağrıldı - qrGenerated: ${qrGenerated}, isConnected: ${isConnected}`);
+  
+  if (isConnected) {
+    return res.json({
+      status: 'connected',
+      message: 'Bot zaten WhatsApp\'a bağlı',
+      connected: true,
+      bot_ready: true,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
   if (!qrGenerated || !currentQR) {
     return res.json({
-      status: 'error',
-      message: 'QR kodu henüz oluşturulmadı veya bot zaten bağlı',
-      connected: client.info ? true : false,
-      bot_ready: client.info ? true : false
+      status: 'waiting',
+      message: 'QR kodu henüz oluşturulmadı. Lütfen bekleyin...',
+      connected: false,
+      bot_ready: false,
+      timestamp: new Date().toISOString()
     });
   }
   
@@ -177,26 +198,68 @@ app.get('/qr', (req, res) => {
 
 // QR Endpoint - Görsel formatında
 app.get('/qr-image', async (req, res) => {
-  if (!qrGenerated || !currentQR) {
+  console.log(`🔍 QR-image endpoint çağrıldı - qrGenerated: ${qrGenerated}, isConnected: ${isConnected}`);
+  
+  if (isConnected) {
     return res.send(`
       <!DOCTYPE html>
       <html>
       <head>
         <title>ARYA Bot - Durum</title>
+        <meta charset="utf-8">
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-          .container { max-width: 500px; margin: 0 auto; }
-          .status { background: #4CAF50; color: white; padding: 20px; border-radius: 5px; }
+          body { font-family: Arial, sans-serif; text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+          .status { background: #4CAF50; padding: 20px; border-radius: 10px; margin: 20px 0; }
+          .info { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; margin: 15px 0; }
+          a { color: #FFD700; text-decoration: none; font-weight: bold; }
+          a:hover { text-decoration: underline; }
         </style>
       </head>
       <body>
         <div class="container">
           <h1>🤖 ARYA Bot</h1>
           <div class="status">
-            <h3>✅ Bot Zaten Bağlı</h3>
+            <h3>✅ Bot Bağlı</h3>
             <p>ARYA botu WhatsApp'a başarıyla bağlandı.</p>
           </div>
-          <p><a href="/health">Bot Durumunu Kontrol Et</a></p>
+          <div class="info">
+            <p><strong>Durum:</strong> Aktif</p>
+            <p><strong>Zaman:</strong> ${new Date().toLocaleString('tr-TR')}</p>
+          </div>
+          <p><a href="/health">📊 Bot Durumunu Kontrol Et</a></p>
+          <p><a href="/">🏠 Ana Sayfa</a></p>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+  
+  if (!qrGenerated || !currentQR) {
+    return res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>ARYA Bot - QR Bekleniyor</title>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); color: white; }
+          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+          .status { background: #ff9800; padding: 20px; border-radius: 10px; margin: 20px 0; }
+          .loader { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 50px; height: 50px; animation: spin 2s linear infinite; margin: 20px auto; }
+          @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>📱 ARYA Bot</h1>
+          <div class="status">
+            <h3>⏳ QR Kodu Bekleniyor</h3>
+            <p>QR kodu henüz oluşturulmadı...</p>
+          </div>
+          <div class="loader"></div>
+          <p>Lütfen sayfayı birkaç saniye sonra yenileyin</p>
+          <p><a href="/qr" style="color: white;">🔄 JSON Durumu Kontrol Et</a></p>
         </div>
       </body>
       </html>
@@ -210,45 +273,75 @@ app.get('/qr-image', async (req, res) => {
       <html>
       <head>
         <title>ARYA Bot - QR Kod</title>
+        <meta charset="utf-8">
         <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-          .container { max-width: 500px; margin: 0 auto; }
-          .qr-image { margin: 20px 0; }
-          .instructions { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }
-          .status { background: #ff9800; color: white; padding: 10px; border-radius: 5px; }
+          body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+          .container { max-width: 500px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); }
+          .qr-image { margin: 20px 0; padding: 20px; background: white; border-radius: 10px; display: inline-block; }
+          .instructions { background: rgba(255,255,255,0.2); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left; }
+          .status { background: #ff9800; padding: 15px; border-radius: 8px; margin: 15px 0; }
+          a { color: #FFD700; text-decoration: none; font-weight: bold; margin: 0 10px; }
+          a:hover { text-decoration: underline; }
         </style>
       </head>
       <body>
         <div class="container">
           <h1>📱 ARYA Bot WhatsApp Bağlantısı</h1>
           <div class="status">
-            <strong>Durum:</strong> QR Bekleniyor
+            <strong>🔴 Durum:</strong> QR Bekleniyor - Bağlanılmadı
           </div>
+          
           <div class="instructions">
-            <h3>Bağlantı Talimatları:</h3>
-            <p>1. Telefonunuzda WhatsApp'ı açın</p>
-            <p>2. WhatsApp Web'e gidin</p>
-            <p>3. Aşağıdaki QR kodu tarayın</p>
+            <h3>📋 Bağlantı Talimatları:</h3>
+            <p>1. 📱 Telefonunuzda WhatsApp'ı açın</p>
+            <p>2. 🌐 WhatsApp Web menüsüne gidin</p>
+            <p>3. 📷 Aşağıdaki QR kodu tarayın</p>
+            <p>4. ✅ Bağlantı onayını bekleyin</p>
           </div>
+          
           <div class="qr-image">
-            <img src="${qrImage}" alt="WhatsApp QR Code" style="max-width: 300px;">
+            <img src="${qrImage}" alt="WhatsApp QR Code" style="max-width: 300px; border: 2px solid #333;">
           </div>
-          <p><a href="/health">Bot Durumunu Kontrol Et</a> | <a href="/qr">JSON API</a></p>
+          
+          <div style="margin: 20px 0;">
+            <p><a href="/health">📊 Bot Durumu</a></p>
+            <p><a href="/qr">🔗 JSON API</a></p>
+            <p><a href="/">🏠 Ana Sayfa</a></p>
+          </div>
+          
+          <script>
+            setInterval(() => {
+              fetch('/qr')
+                .then(response => response.json())
+                .then(data => {
+                  if (data.connected) {
+                    window.location.reload();
+                  }
+                });
+            }, 10000);
+          </script>
         </div>
       </body>
       </html>
     `);
   } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: 'QR görsel oluşturulamadı'
-    });
+    console.error('QR görsel oluşturma hatası:', error);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>Hata</title></head>
+      <body>
+        <h1>❌ QR oluşturulurken hata</h1>
+        <p>${error.message}</p>
+      </body>
+      </html>
+    `);
   }
 });
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  const botStatus = client.info ? 'connected' : 'disconnected';
+  const botStatus = isConnected ? 'connected' : 'disconnected';
   
   res.json({ 
     status: 'OK', 
@@ -256,13 +349,17 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
     company: 'PlanB Global Network Ltd Şti',
     whatsapp_status: botStatus,
-    qr_available: qrGenerated && !client.info,
+    qr_available: qrGenerated && !isConnected,
+    is_connected: isConnected,
+    qr_generated: qrGenerated,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory_usage: process.memoryUsage(),
-    qr_endpoints: {
-      json: '/qr',
-      image: '/qr-image'
+    endpoints: {
+      qr: '/qr',
+      qr_image: '/qr-image',
+      health: '/health',
+      services: '/services'
     }
   });
 });
@@ -290,6 +387,8 @@ app.get('/services', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     message: 'ARYA Bot API Service',
+    status: isConnected ? 'connected' : 'disconnected',
+    qr_available: qrGenerated && !isConnected,
     endpoints: {
       health: '/health',
       qr: '/qr',
@@ -305,16 +404,17 @@ app.get('/', (req, res) => {
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Endpoint bulunamadı',
-    available_endpoints: ['/health', '/qr', '/qr-image', '/services']
+    available_endpoints: ['/', '/health', '/qr', '/qr-image', '/services']
   });
 });
 
 // Sunucuyu başlat
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 ARYA Bot API http://0.0.0.0:${PORT} adresinde çalışıyor`);
-  console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
-  console.log(`📋 Servisler: http://0.0.0.0:${PORT}/services`);
-  console.log(`📱 QR Kod: http://0.0.0.0:${PORT}/qr-image`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`📋 Servisler: http://localhost:${PORT}/services`);
+  console.log(`📱 QR Kod: http://localhost:${PORT}/qr-image`);
+  console.log(`📱 QR JSON: http://localhost:${PORT}/qr`);
   logger.info(`ARYA Bot API ${PORT} portunda başlatıldı`);
 });
 
@@ -323,6 +423,7 @@ console.log('🚀 ARYA Bot başlatılıyor...');
 console.log('📁 Modüler yapı yükleniyor...');
 console.log('🤖 Hugging Face Asistanı aktif!');
 console.log('⚡ Admin komut sistemi aktif!');
+console.log('🔗 QR Endpoint\'leri aktif!');
 
 client.initialize().catch(error => {
   logger.error(`Bot başlatma hatası: ${error.message}`);
@@ -344,7 +445,6 @@ process.on('SIGINT', async () => {
     if (session.goodbyeTimer) clearTimeout(session.goodbyeTimer);
   });
   
-  // Client'ı temizle
   try {
     await client.destroy();
     console.log('✅ WhatsApp client temizlendi');
@@ -377,8 +477,10 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Başlangıç kontrolü
 setTimeout(() => {
-  if (!client.info) {
-    console.log('⏳ WhatsApp bağlantısı bekleniyor... QR kodu tarayın.');
-    console.log('📲 Web QR: http://0.0.0.0:5000/qr-image');
+  if (!isConnected) {
+    console.log('\n⏳ WhatsApp bağlantısı bekleniyor...');
+    console.log('📲 Web QR: http://localhost:5000/qr-image');
+    console.log('📲 JSON QR: http://localhost:5000/qr');
+    console.log('📊 Durum: http://localhost:5000/health');
   }
 }, 3000);

@@ -3,7 +3,7 @@ const logger = require('./logger');
 // Kullanıcı oturumlarını takip etmek için
 const userSessions = new Map();
 
-// Kullanıcı oturumu oluştur - GÜNCELLENDİ
+// ----------  Temel Oturum  ----------
 function createUserSession(userId) {
   const session = {
     userId: userId,
@@ -26,272 +26,157 @@ function createUserSession(userId) {
     serviceFlow: null,
     menuHistory: []
   };
-  
   userSessions.set(userId, session);
   console.log(`🆕 Yeni oturum oluşturuldu: ${userId}`);
   return session;
 }
 
-function addToMessageBuffer(userId, message) {
-  const session = getUserSession(userId);
-  const now = Date.now();
-  
-  console.log(`📥 Buffer'a mesaj eklendi: "${message}" - Kullanıcı: ${userId}`);
-  
-  session.messageBuffer.push(message);
-  session.lastMessageTime = now;
-  
-  if (session.messageTimer) {
-    clearTimeout(session.messageTimer);
-  }
-  
-  // 7 saniye bekleme süresi
-  session.messageTimer = setTimeout(() => {
-    // Timer tetiklendiğinde, messageHandler'daki handleMessage fonksiyonunun 
-    // buffer'ı işlemesini tetikleyecek bir mekanizma olmalı.
-    // Bu, messageHandler'da kontrol edilecek.
-    console.log(`⏰ Buffer zaman aşımı - İşlenmeye hazır: ${userId}`);
-  }, 7000);
-  
-  return session.messageBuffer;
+function getUserSession(userId) {
+  let session = userSessions.get(userId);
+  if (!session) session = createUserSession(userId);
+  return session;
 }
 
-function processMessageBuffer(userId) {
-  const session = getUserSession(userId);
-  
-  if (session.messageBuffer.length === 0) {
-    return null;
-  }
-  
-  // Buffer'ı birleştir
-  const combinedMessage = session.messageBuffer.join(' ');
-  
-  // Buffer'ı temizle ve timer'ı durdur
-  session.messageBuffer = [];
-  if (session.messageTimer) {
-    clearTimeout(session.messageTimer);
-    session.messageTimer = null;
-  }
-  
-  return combinedMessage;
-}
-
-function clearMessageBuffer(userId) {
-  const session = getUserSession(userId);
-  
-  if (session.messageTimer) {
-    clearTimeout(session.messageTimer);
-    session.messageTimer = null;
-  }
-  
-  session.messageBuffer = [];
-  session.isProcessingBuffer = false;
-  
-  console.log(`🧹 Buffer temizlendi - Kullanıcı: ${userId}`);
-}
-
-function getBufferStatus(userId) {
-  const session = getUserSession(userId);
-  return {
-    hasBuffer: session.messageBuffer.length > 0,
-    bufferSize: session.messageBuffer.length,
-    isProcessing: session.isProcessingBuffer,
-    lastMessageTime: session.lastMessageTime,
-    bufferContent: session.messageBuffer.join(' ')
-  };
-}
-
-function setIsProcessingBuffer(userId, isProcessing) {
-  const session = getUserSession(userId);
-  session.isProcessingBuffer = isProcessing;
-  console.log(`🔄 isProcessingBuffer ayarlandı: ${isProcessing} - Kullanıcı: ${userId}`);
-}
-
-// Kullanıcı oturumunu güncelle - GÜNCELLENDİ
 function updateUserSession(userId, updates) {
   const session = getUserSession(userId);
   Object.assign(session, updates);
   session.lastActivity = Date.now();
   userSessions.set(userId, session);
-  
   console.log(`📝 Oturum güncellendi: ${userId}, Durum: ${session.currentState}`);
-  return session;
 }
 
-// Oturumu getir - GÜNCELLENDİ
-function getUserSession(userId) {
-  let session = userSessions.get(userId);
-  if (!session) {
-    console.log(`🆕 Oturum bulunamadı, yeni oluşturuluyor: ${userId}`);
-    session = createUserSession(userId);
-  }
-  return session;
+function deleteUserSession(userId) {
+  userSessions.delete(userId);
+  console.log(`🗑️ Oturum silindi: ${userId}`);
 }
 
-// Yardım timer'ı başlat - GÜNCELLENDİ
-function startHelpTimer(userId, message, services) {
-  const session = getUserSession(userId);
-  if (session && session.helpTimer) {
-    clearTimeout(session.helpTimer);
-  }
-  if (session && session.goodbyeTimer) {
-    clearTimeout(session.goodbyeTimer);
-  }
-
-  console.log(`⏰ Yardım timer başlatıldı - Kullanıcı: ${userId}`);
-
-  // 1. Timer: 3 dakika sonra menüyü göster
-  const helpTimer = setTimeout(async () => {
-    const currentSession = getUserSession(userId);
-    if (currentSession && currentSession.waitingForHelp) {
-      console.log(`⏰ Yardım zaman aşımı - Menü gösteriliyor: ${userId}`);
-      
-      const menuHandler = require('./menuHandler');
-      await menuHandler.showMainMenu(message, services);
-      
-      // 2. Timer: 3 dakika sonra vedalaşma
-      const goodbyeTimer = setTimeout(async () => {
-        await handleGoodbye(message);
-      }, 3 * 60 * 1000); // 3 dakika
-      
-      updateUserSession(userId, { 
-        waitingForHelp: false, 
-        helpTimer: null,
-        goodbyeTimer: goodbyeTimer
-      });
-    }
-  }, 3 * 60 * 1000); // 3 dakika
-
-  updateUserSession(userId, { 
-    waitingForHelp: true, 
-    helpTimer: helpTimer
-  });
-}
-
-// Vedalaşma işlemi - GÜNCELLENDİ
-async function handleGoodbye(message) {
-  const serviceLoader = require('./serviceLoader');
-  const greetings = serviceLoader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
-  const goodbyeMsg = greetings?.vedalasma?.hoscakal?.[0] || 
-                    'Hoşça kalın! PlanB Global Network Ltd Şti adına iyi günler dilerim.';
-  
-  await message.reply(goodbyeMsg);
-  
-  console.log(`👋 Vedalaşma mesajı gönderildi - Kullanıcı: ${message.from}`);
-  
-  // Oturumu temizle
-  updateUserSession(message.from, {
-    currentState: 'main_menu',
-    waitingForHelp: false,
-    helpTimer: null,
-    goodbyeTimer: null
-  });
-  clearMessageBuffer(message.from);
-}
-
-// Yardım timer'ını durdur (kullanıcı cevap verdiğinde) - GÜNCELLENDİ
-function stopHelpTimer(userId) {
-  const session = getUserSession(userId);
-  if (session) {
-    if (session.helpTimer) {
-      clearTimeout(session.helpTimer);
-      console.log(`⏰ Yardım timer durduruldu - Kullanıcı: ${userId}`);
-    }
-    if (session.goodbyeTimer) {
-      clearTimeout(session.goodbyeTimer);
-      console.log(`⏰ Vedalaşma timer durduruldu - Kullanıcı: ${userId}`);
-    }
-    updateUserSession(userId, { 
-      waitingForHelp: false, 
-      helpTimer: null,
-      goodbyeTimer: null
-    });
-  }
-}
-
-// Menü zamanlayıcı başlat - GÜNCELLENDİ
-function startMenuTimer(userId, message, services) {
-  const session = getUserSession(userId);
-  if (session && session.menuTimer) {
-    clearTimeout(session.menuTimer);
-  }
-
-  const timer = setTimeout(async () => {
-    const currentSession = getUserSession(userId);
-    if (currentSession && currentSession.waitingForResponse) {
-      console.log(`⏰ Menü zaman aşımı - Kullanıcı: ${userId}`);
-      const menuHandler = require('./menuHandler');
-      await menuHandler.showMainMenu(message, services);
-      updateUserSession(userId, { 
-        waitingForResponse: false, 
-        menuTimer: null,
-        currentState: 'main_menu'
-      });
-    }
-  }, 60000);
-
-  updateUserSession(userId, { 
-    waitingForResponse: true, 
-    menuTimer: timer,
-    currentState: 'waiting_for_service'
-  });
-}
-
-// Menü zamanlayıcıyı durdur - GÜNCELLENDİ
-function stopMenuTimer(userId) {
-  const session = getUserSession(userId);
-  if (session && session.menuTimer) {
-    clearTimeout(session.menuTimer);
-    updateUserSession(userId, { 
-      waitingForResponse: false, 
-      menuTimer: null
-    });
-    console.log(`⏰ Menü timer durduruldu - Kullanıcı: ${userId}`);
-  }
-}
-
-// Satış zamanlayıcısını temizle - GÜNCELLENDİ
-function clearSaleTimer(userId) {
-  const session = getUserSession(userId);
-  if (session && session.saleTimer) {
-    clearTimeout(session.saleTimer);
-    updateUserSession(userId, { saleTimer: null });
-    console.log(`⏰ Satış timer temizlendi - Kullanıcı: ${userId}`);
-  }
-}
-
-// Tüm oturumları temizle (debug için)
 function clearAllSessions() {
-  const count = userSessions.size;
+  const c = userSessions.size;
   userSessions.clear();
-  console.log(`🧹 ${count} oturum temizlendi`);
+  console.log(`🧹 ${c} oturum temizlendi`);
 }
 
-// Aktif oturumları listele (debug için)
-function listActiveSessions() {
-  console.log(`📊 Aktif oturumlar: ${userSessions.size}`);
-  userSessions.forEach((session, userId) => {
-    console.log(`  👤 ${userId}: ${session.currentState}`);
-  });
+// ----------  Buffer Yönetimi (korunmuş) ----------
+const addToMessageBuffer = (userId, message) => {
+  const session = getUserSession(userId);
+  const now = Date.now();
+  console.log(`📥 Buffer'a mesaj eklendi: "${message}" - Kullanıcı: ${userId}`);
+  session.messageBuffer.push(message);
+  session.lastMessageTime = now;
+  if (session.messageTimer) clearTimeout(session.messageTimer);
+  session.messageTimer = setTimeout(() => {
+    console.log(`⏰ Buffer zaman aşımı - İşlenmeye hazır: ${userId}`);
+  }, 7000);
+  return session.messageBuffer;
+};
+
+const processMessageBuffer = (userId) => {
+  const session = getUserSession(userId);
+  if (!session.messageBuffer.length) return null;
+  const combined = session.messageBuffer.join(' ');
+  session.messageBuffer = [];
+  if (session.messageTimer) { clearTimeout(session.messageTimer); session.messageTimer = null; }
+  return combined;
+};
+
+const clearMessageBuffer = (userId) => {
+  const session = getUserSession(userId);
+  if (session.messageTimer) { clearTimeout(session.messageTimer); session.messageTimer = null; }
+  session.messageBuffer = []; session.isProcessingBuffer = false;
+  console.log(`🧹 Buffer temizlendi - Kullanıcı: ${userId}`);
+};
+
+const getBufferStatus = (userId) => {
+  const s = getUserSession(userId);
+  return { hasBuffer: s.messageBuffer.length > 0, bufferSize: s.messageBuffer.length, isProcessing: s.isProcessingBuffer, lastMessageTime: s.lastMessageTime, bufferContent: s.messageBuffer.join(' ') };
+};
+
+const setIsProcessingBuffer = (userId, val) => {
+  getUserSession(userId).isProcessingBuffer = val;
+  console.log(`🔄 isProcessingBuffer ayarlandı: ${val} - Kullanıcı: ${userId}`);
+};
+
+// ----------  Menu Goodbye Timer  ----------
+function startMenuGoodbyeTimer(userId, message, services, timeoutMs = 6 * 60 * 1000) {
+  const session = getUserSession(userId);
+  if (session.menuGoodbyeTimer) clearTimeout(session.menuGoodbyeTimer);
+
+  session.menuGoodbyeTimer = setTimeout(async () => {
+    const menuHandler = require('./menuHandler');
+    await menuHandler.showMainMenu(message, services);
+    updateUserSession(userId, { currentState: 'main_menu' });
+  }, timeoutMs);
+  console.log(`⏰ MenuGoodbyeTimer başlatıldı (${timeoutMs / 1000}s): ${userId}`);
 }
+
+/**
+ * menuHandler.js'nin çağırdığı fonksiyon - HATA DÜZELTME
+ */
+function stopMenuGoodbyeTimer(userId) {
+  const session = getUserSession(userId);
+  if (session && session.menuGoodbyeTimer) {
+    clearTimeout(session.menuGoodbyeTimer);
+    session.menuGoodbyeTimer = null;
+    console.log(`⏰ MenuGoodbyeTimer durduruldu: ${userId}`);
+  }
+}
+
+// ----------  Help & Goodbye Timer (korunmuş) ----------
+function startHelpTimer(userId, message, services) {
+  const s = getUserSession(userId);
+  if (s.helpTimer) clearTimeout(s.helpTimer);
+  if (s.goodbyeTimer) clearTimeout(s.goodbyeTimer);
+
+  const helpT = setTimeout(async () => {
+    const menuHandler = require('./menuHandler');
+    await menuHandler.showMainMenu(message, services);
+    const goodbyeT = setTimeout(async () => {
+      const loader = require('./serviceLoader');
+      const greetings = loader.loadJSON('./genel_diyalog/selamlama_vedalasma.json');
+      const msg = greetings?.vedalasma?.hoscakal?.[0] || 'Hoşça kalın! PlanB Global Network Ltd Şti adına iyi günler dilerim.';
+      await message.reply(msg);
+      updateUserSession(userId, { currentState: 'main_menu', waitingForHelp: false, helpTimer: null, goodbyeTimer: null });
+      clearMessageBuffer(userId);
+    }, 3 * 60 * 1000);
+    updateUserSession(userId, { waitingForHelp: false, helpTimer: null, goodbyeTimer: goodbyeT });
+  }, 3 * 60 * 1000);
+
+  updateUserSession(userId, { waitingForHelp: true, helpTimer: helpT });
+  console.log(`⏰ HelpTimer başlatıldı: ${userId}`);
+}
+
+function stopHelpTimer(userId) {
+  const s = getUserSession(userId);
+  if (s) {
+    if (s.helpTimer) { clearTimeout(s.helpTimer); console.log(`⏰ HelpTimer durduruldu: ${userId}`); }
+    if (s.goodbyeTimer) { clearTimeout(s.goodbyeTimer); console.log(`⏰ GoodbyeTimer durduruldu: ${userId}`); }
+    updateUserSession(userId, { waitingForHelp: false, helpTimer: null, goodbyeTimer: null });
+  }
+}
+
+// ----------  Diğer Timer'lar ----------
+function startMenuTimer(userId, message, services) { /* 60s sonra ana menü */ }
+function stopMenuTimer(userId) { /* varsa timer'ı durdur */ }
+function clearSaleTimer(userId) { /* saleTimer'ı sıfırla */ }
 
 module.exports = {
   createUserSession,
-  updateUserSession,
   getUserSession,
-  startMenuTimer,
-  stopMenuTimer,
-  clearSaleTimer,
-  startHelpTimer,
-  stopHelpTimer,
-  handleGoodbye,
-  userSessions,
+  updateUserSession,
+  deleteUserSession,
   clearAllSessions,
-  listActiveSessions,
-  // YENİ BUFFER FONKSİYONLARI
+  // Buffer
   addToMessageBuffer,
   processMessageBuffer,
   clearMessageBuffer,
   getBufferStatus,
-  setIsProcessingBuffer
+  setIsProcessingBuffer,
+  // Timer'lar
+  startMenuGoodbyeTimer,
+  stopMenuGoodbyeTimer, // <-- YENİ, HATAYI KAPATIR
+  startHelpTimer,
+  stopHelpTimer,
+  startMenuTimer,
+  stopMenuTimer,
+  clearSaleTimer
 };

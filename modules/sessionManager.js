@@ -8,7 +8,6 @@ const TIMER_DELAYS = {
   MESSAGE_BUFFER: 7000,
   MENU_TIMEOUT: 5 * 60 * 1000, // 5 dakika (sadece bir defa menü gösterimi)
   HELP_TIMEOUT: 5 * 60 * 1000, // 5 dakika
-  GOODBYE_TIMEOUT: 5 * 60 * 1000 // 5 dakika
 };
 
 // Kullanıcı oturumu oluştur - GÜNCELLENDİ
@@ -147,13 +146,19 @@ function getUserSession(userId) {
   return session;
 }
 
-// Menü zamanlayıcı başlat - YENİDEN YAZILDI (5 DAKİKA + VEDA)
+// Menü zamanlayıcı başlat - YENİDEN YAZILDI (5 DAKİKA + TEK SEFER)
 function startMenuTimer(userId, message, services) {
   const session = getUserSession(userId);
   
-  // Eğer menü zaten gösterildiyse ve veda mesajı gönderildiyse, tekrar başlatma
-  if (session.menuShown && session.goodbyeSent) {
-    logger.info(`⏰ Menü zaten gösterildi ve veda mesajı gönderildi - Timer başlatılmıyor: ${userId}`);
+  // Eğer menü zaten gösterildiyse ve timer başlatıldıysa, tekrar başlatma
+  if (session.menuShown && session.menuTimer) {
+    logger.info(`⏰ Menü zaten gösterildi ve timer aktif - Tekrar başlatılmıyor: ${userId}`);
+    return;
+  }
+  
+  // Eğer veda mesajı gönderildiyse, timer başlatma
+  if (session.goodbyeSent) {
+    logger.info(`⏰ Veda mesajı gönderildi - Timer başlatılmıyor: ${userId}`);
     return;
   }
   
@@ -177,14 +182,6 @@ function startMenuTimer(userId, message, services) {
       
       // Direkt veda mesajı gönder
       await handleGoodbye(message);
-      
-      // Oturumu kapat
-      updateUserSession(userId, {
-        waitingForResponse: false,
-        menuTimer: null,
-        goodbyeSent: true,
-        currentState: 'ended'
-      });
       
     } catch (error) {
       logger.error(`Menü timer hatası: ${error.message} - Kullanıcı: ${userId}`);
@@ -236,12 +233,6 @@ function startHelpTimer(userId, message, services) {
         
         // Direkt veda mesajı gönder
         await handleGoodbye(message);
-        
-        updateUserSession(userId, { 
-          waitingForHelp: false, 
-          helpTimer: null,
-          goodbyeSent: true
-        });
       }
     } catch (error) {
       logger.error(`Yardım timer hatası: ${error.message} - Kullanıcı: ${userId}`);
@@ -310,45 +301,11 @@ function closeUserSession(userId) {
   logger.info(`🔒 Oturum kapatıldı - Kullanıcı: ${userId}`);
 }
 
-// Oturumu sıfırlama fonksiyonu - GÜNCELLENDİ
-function resetUserSession(userId) {
-  const session = getUserSession(userId);
-  
-  // Tüm timer'ları temizle
-  clearAllTimers(session);
-  
-  // Oturumu başlangıç durumuna getir (menü gösterilmedi olarak)
-  updateUserSession(userId, {
-    waitingForResponse: false,
-    waitingForHelp: false,
-    menuTimer: null,
-    saleTimer: null,
-    helpTimer: null,
-    goodbyeTimer: null,
-    currentState: 'main_menu',
-    currentService: null,
-    messageBuffer: [],
-    messageTimer: null,
-    lastMessageTime: Date.now(),
-    isProcessingBuffer: false,
-    currentQuestions: [],
-    currentQuestionIndex: 0,
-    collectedAnswers: {},
-    serviceFlow: null,
-    menuHistory: [],
-    menuShown: false, // Menü gösterilmedi olarak sıfırla
-    goodbyeSent: false // Veda mesajı gönderilmedi olarak sıfırla
-  });
-  
-  logger.info(`🔄 Oturum sıfırlandı - Kullanıcı: ${userId}`);
-}
-
 // Yardım timer'ını durdur (kullanıcı cevap verdiğinde) - GÜNCELLENDİ
 function stopHelpTimer(userId) {
   const session = getUserSession(userId);
   if (session) {
     session.helpTimer = clearTimer(session.helpTimer);
-    session.goodbyeTimer = clearTimer(session.goodbyeTimer);
     
     logger.debug(`⏰ Yardım timer durduruldu - Kullanıcı: ${userId}`);
     
@@ -397,46 +354,25 @@ function listActiveSessions() {
   userSessions.forEach((session, userId) => {
     const menuStatus = session.menuShown ? ' (Menü gösterildi)' : ' (Menü gösterilmedi)';
     const goodbyeStatus = session.goodbyeSent ? ' - VEDA GÖNDERİLDİ' : '';
-    logger.info(`  👤 ${userId}: ${session.currentState}${menuStatus}${goodbyeStatus}`);
+    const timerStatus = session.menuTimer ? ' - TIMER AKTİF' : ' - TIMER PASİF';
+    logger.info(`  👤 ${userId}: ${session.currentState}${menuStatus}${goodbyeStatus}${timerStatus}`);
   });
-}
-
-// Zaman aşımına uğramış oturumları temizle
-function cleanupExpiredSessions(maxAge = 24 * 60 * 60 * 1000) { // Varsayılan: 24 saat
-  const now = Date.now();
-  let cleanedCount = 0;
-  
-  userSessions.forEach((session, userId) => {
-    if (now - session.lastActivity > maxAge) {
-      deleteUserSession(userId);
-      cleanedCount++;
-    }
-  });
-  
-  if (cleanedCount > 0) {
-    logger.info(`🧹 ${cleanedCount} zaman aşımına uğramış oturum temizlendi`);
-  }
-  
-  return cleanedCount;
 }
 
 module.exports = {
   createUserSession,
   updateUserSession,
   getUserSession,
-  resetUserSession,
-  deleteUserSession,
   startMenuTimer,
   stopMenuTimer,
   clearSaleTimer,
   startHelpTimer,
   stopHelpTimer,
   handleGoodbye,
-  closeUserSession, // YENİ
+  closeUserSession,
   userSessions,
   clearAllSessions,
   listActiveSessions,
-  cleanupExpiredSessions,
   // YENİ BUFFER FONKSİYONLARI
   addToMessageBuffer,
   processMessageBuffer,
